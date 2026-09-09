@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@page {
+  size: portrait;
+  margin: 10mm;
+}
+
+@media print {
+  /* Hide non-printable elements, buttons, and modal headers */
+  .no-print,
+  .no-print *,
+  #printable-bill-container .no-print,
+  #printable-bill-container .no-print *,
+  button,
+  .button {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #printable-bill,
+  #printable-bill * {
+    visibility: visible !important;
+  }
+
+  #printable-bill-container {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border: none !important;
+    visibility: visible !important;
+  }
+
+  #printable-bill {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  tr, table, div {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+
