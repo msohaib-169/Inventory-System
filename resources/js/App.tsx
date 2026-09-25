@@ -549,8 +549,14 @@ export default function App() {
             <ReportsView
               lots={lots}
               cuttingRecords={cuttingRecords}
+              productionRecords={productionRecords}
               products={products}
               invoices={invoices}
+              parties={parties}
+              wadding={wadding}
+              suppliers={suppliers}
+              supplierBills={supplierBills}
+              supplierPayments={supplierPayments}
               currency={selectedCurrency}
             />
           )}

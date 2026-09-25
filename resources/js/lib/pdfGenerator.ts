@@ -9,6 +9,191 @@ export const COMPANY_INFO = {
 };
 
 export const PDFGenerator = {
+  generateLotDetailReportPDF: (
+    lots: FabricLot[],
+    periodText: string,
+    companyInfo?: { name?: string; address?: string; phone?: string }
+  ) => {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const companyName = companyInfo?.name || COMPANY_INFO.name;
+    const companyAddress = companyInfo?.address || COMPANY_INFO.address;
+    const companyPhone = companyInfo?.phone || COMPANY_INFO.phone;
+
+    const formatMeters = (value: number) => `${Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m`;
+
+    const addPageHeader = (lotIndex: number, totalLots: number) => {
+      doc.setFillColor(30, 58, 138);
+      doc.rect(0, 0, 210, 28, 'F');
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(companyName, 14, 16);
+
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${companyAddress} | Ph: ${companyPhone}`, 14, 22);
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(9);
+      doc.text(`Lot Report ${lotIndex + 1}/${totalLots}`, 154, 16);
+      doc.text(`${periodText}`, 163, 22, { align: 'right' });
+    };
+
+    lots.forEach((lot, lotIndex) => {
+      if (lotIndex > 0) doc.addPage();
+      addPageHeader(lotIndex, lots.length);
+
+      let totalFront = 0;
+      let totalReverse = 0;
+      lot.designs.forEach((design) => {
+        totalFront += Number(design.frontMeters || 0);
+        totalReverse += Number(design.reverseMeters || 0);
+      });
+      const totalMeters = totalFront + totalReverse;
+
+      let y = 36;
+      doc.setTextColor(30, 58, 138);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('LOT DETAILS', 14, y);
+      y += 8;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(40, 40, 40);
+      doc.text('Lot No:', 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lot.lotNumber || 'N/A', 42, y);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Supplier:', 110, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lot.supplierName || 'N/A', 135, y);
+      y += 6;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Date Received:', 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lot.dateReceived || 'N/A', 48, y);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Designs:', 110, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(String(lot.designs?.length || 0), 136, y);
+      y += 6;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Rate / Meter:', 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lot.ratePerMeter ? `${lot.ratePerMeter.toFixed(2)}` : 'N/A', 48, y);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Total Cost:', 110, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lot.totalCost ? `${lot.totalCost.toFixed(2)}` : 'N/A', 138, y);
+      y += 6;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Payment Status:', 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lot.paymentStatus || 'Unpaid', 48, y);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Amount Paid:', 110, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lot.amountPaid ? `${lot.amountPaid.toFixed(2)}` : '0.00', 138, y);
+      y += 8;
+
+      doc.setFillColor(243, 244, 246);
+      doc.roundedRect(12, y - 3, 186, 18, 2, 2, 'F');
+
+      doc.setTextColor(30, 58, 138);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text('Summary', 18, y + 7);
+
+      doc.setFontSize(9);
+      doc.setTextColor(60, 60, 60);
+      doc.setFont('helvetica', 'normal');
+
+      const summaryY = y + 7;
+      const frontText = `Front: ${formatMeters(totalFront)}`;
+      const reverseText = `Reverse: ${formatMeters(totalReverse)}`;
+      const totalText = `Total: ${formatMeters(totalMeters)}`;
+
+      const reverseWidth = doc.getTextWidth(reverseText);
+      const totalWidth = doc.getTextWidth(totalText);
+      const frontWidth = doc.getTextWidth(frontText);
+
+      const totalStartX = 200 - totalWidth;
+      const reverseStartX = Math.max(110, totalStartX - reverseWidth - 8);
+      const frontStartX = Math.max(18, reverseStartX - frontWidth - 10);
+
+      doc.text(frontText, frontStartX, summaryY);
+      doc.text(reverseText, reverseStartX, summaryY);
+      doc.text(totalText, totalStartX, summaryY);
+      y += 18;
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Design #', 'Design Name', 'Type', 'Front (m)', 'Reverse (m)', 'Total (m)']],
+        body: lot.designs.length
+          ? lot.designs.map((design) => {
+            const front = Number(design.frontMeters || 0);
+            const reverse = Number(design.reverseMeters || 0);
+            return [
+              design.designNumber || 'N/A',
+              design.designName || '-',
+              design.fabricType || 'bedsheet_set',
+              front.toFixed(2),
+              reverse.toFixed(2),
+              (front + reverse).toFixed(2),
+            ];
+          })
+          : [['N/A', 'No designs captured', '-', '0.00', '0.00', '0.00']],
+        headStyles: {
+          fillColor: [30, 58, 138],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+        },
+        styles: {
+          fontSize: 8,
+          cellPadding: 3,
+        },
+        columnStyles: {
+          0: { cellWidth: 22 },
+          1: { cellWidth: 60 },
+          2: { cellWidth: 22 },
+          3: { cellWidth: 22, halign: 'right' },
+          4: { cellWidth: 22, halign: 'right' },
+          5: { cellWidth: 24, halign: 'right' },
+        },
+        margin: { left: 14, right: 14 },
+      });
+
+      const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY || y + 20;
+      doc.setTextColor(70, 70, 70);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Supplier Address:', 14, finalY + 8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lot.supplierAddress || 'Not provided', 42, finalY + 8, { maxWidth: 140 });
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Notes:', 14, finalY + 15);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lot.notes || 'No lot notes available.', 32, finalY + 15, { maxWidth: 160 });
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Payment Notes:', 14, finalY + 22);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lot.paymentNotes || 'No payment notes.', 42, finalY + 22, { maxWidth: 150 });
+    });
+
+    doc.save(`Fabric_Lot_Detail_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+  },
+
   generateInvoicePDF: (invoice: Invoice, companyInfo?: { name?: string; address?: string; phone?: string }) => {
     const doc = new jsPDF();
 
@@ -17,7 +202,7 @@ export const PDFGenerator = {
     const companyPhone = companyInfo?.phone || COMPANY_INFO.phone;
 
     // Primary Header Background Bar
-    doc.setFillColor(30, 58, 138); // Navy Blue (#1e3a8a)
+    doc.setFillColor(0, 0, 0);
     doc.rect(0, 0, 210, 32, 'F');
 
     // Header Text
@@ -31,7 +216,7 @@ export const PDFGenerator = {
     doc.text(`${companyAddress} | Ph: ${companyPhone}`, 14, 26);
 
     // Invoice Title
-    doc.setTextColor(30, 58, 138);
+    doc.setTextColor(0, 0, 0);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     doc.text('INVOICE', 160, 45);
@@ -67,7 +252,7 @@ export const PDFGenerator = {
     doc.text(`${invoice.status.toUpperCase()}`, 165, 76);
 
     // Customer Info Box
-    doc.setTextColor(30, 58, 138);
+    doc.setTextColor(0, 0, 0);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.text('BILLED TO:', 14, 45);
@@ -110,7 +295,7 @@ export const PDFGenerator = {
       head: [['#', 'Item Description', 'Design #', 'Qty', 'Unit Price', 'Total']],
       body: tableData,
       headStyles: {
-        fillColor: [30, 58, 138],
+        fillColor: [0, 0, 0],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
       },
@@ -160,7 +345,7 @@ export const PDFGenerator = {
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.setTextColor(30, 58, 138);
+    doc.setTextColor(0, 0, 0);
     doc.text('Grand Total:', summaryX, currentY);
     doc.text(`${curr} ${invoice.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 196, currentY, { align: 'right' });
 

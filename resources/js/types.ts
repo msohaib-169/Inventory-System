@@ -133,6 +133,7 @@ export interface RawMaterialStockItem {
   paymentStatus?: 'Paid' | 'Partial' | 'Unpaid';
   paymentNotes?: string;
   notes?: string;
+  stockStatements?: StockStatement[];
 }
 
 export type SupplierCategory =
@@ -241,6 +242,17 @@ export interface ProductionRecord {
   notes?: string;
 }
 
+export interface StockStatement {
+  id: string;
+  date: string;
+  type: 'production' | 'usage' | 'adjustment';
+  quantity: number;
+  note?: string;
+  reference?: string;
+}
+
+export interface ProductStockStatement extends StockStatement {}
+
 export interface FinishedProduct {
   id: string;
   name: string;
@@ -253,6 +265,7 @@ export interface FinishedProduct {
   stockQuantity: number;
   reorderLevel: number;
   unit: string;
+  stockStatements?: ProductStockStatement[];
 }
 
 export interface Party {

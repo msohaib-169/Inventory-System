@@ -253,7 +253,6 @@ export const PartiesLedgerView: React.FC<PartiesLedgerViewProps> = ({
               onClick={() => handleOpenPaymentModal()}
               className="flex items-center space-x-1.5 px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-lg transition shadow cursor-pointer"
             >
-              <DollarSign className="w-4 h-4" />
               <span>Receive Party Payment</span>
             </button>
 

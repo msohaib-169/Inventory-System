@@ -174,9 +174,19 @@ export const ProductionManagementView: React.FC<ProductionManagementViewProps> =
       );
 
       if (existingIdx >= 0) {
+        const statementEntry = {
+          id: `prod-stmt-${Date.now()}`,
+          date,
+          type: 'production' as const,
+          quantity: qty,
+          note: notes.trim() || 'Production run completed',
+          reference: 'Production Update',
+        };
+
         updatedProducts[existingIdx] = {
           ...updatedProducts[existingIdx],
           stockQuantity: updatedProducts[existingIdx].stockQuantity + qty,
+          stockStatements: [statementEntry, ...(updatedProducts[existingIdx].stockStatements || [])],
         };
         targetProduct = updatedProducts[existingIdx];
       } else {
@@ -191,14 +201,35 @@ export const ProductionManagementView: React.FC<ProductionManagementViewProps> =
           stockQuantity: qty,
           reorderLevel: 0,
           unit: 'pcs',
+          stockStatements: [{
+            id: `prod-stmt-${Date.now()}`,
+            date,
+            type: 'production',
+            quantity: qty,
+            note: notes.trim() || 'Production run completed',
+            reference: 'Production Update',
+          }],
         };
         updatedProducts = [newProduct, ...updatedProducts];
         targetProduct = newProduct;
       }
     } else {
       if (!selectedProductObj) return;
+      const productionStatement = {
+        id: `prod-stmt-${Date.now()}`,
+        date,
+        type: 'production' as const,
+        quantity: qty,
+        note: notes.trim() || 'Production run completed',
+        reference: 'Production Update',
+      };
+
       updatedProducts = products.map((p) =>
-        p.id === selectedProductObj.id ? { ...p, stockQuantity: p.stockQuantity + qty } : p
+        p.id === selectedProductObj.id ? {
+          ...p,
+          stockQuantity: p.stockQuantity + qty,
+          stockStatements: [productionStatement, ...(p.stockStatements || [])],
+        } : p
       );
       targetProduct = selectedProductObj;
     }
@@ -253,9 +284,19 @@ export const ProductionManagementView: React.FC<ProductionManagementViewProps> =
           else if (rmCatLower.includes('quilt_bag')) quiltBagsUsedCount += qty;
           else if (rmCatLower.includes('comforter_bag')) comforterBagsUsedCount += qty;
 
+          const productionStatement = {
+            id: `pkg-prod-${Date.now()}-${rm.id}`,
+            date,
+            type: 'usage' as const,
+            quantity: qty,
+            note: notes.trim() || 'Packaging consumed during production run',
+            reference: 'Production Update',
+          };
+
           return {
             ...rm,
             quantityInStock: Math.max(0, rm.quantityInStock - qty),
+            stockStatements: [productionStatement, ...(rm.stockStatements || [])],
           };
         }
         return rm;

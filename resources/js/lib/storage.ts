@@ -307,11 +307,11 @@ const defaultProductionRecords: ProductionRecord[] = [
 ];
 
 const defaultProducts: FinishedProduct[] = [
-  { id: 'p-1', name: 'Single Quilt Velvet', sku: 'SQ-DS201', category: 'Single Quilt', subCategory: 'Single Quilt Standard', designNumber: 'DS-201', costPrice: 18.5, sellingPrice: 28.0, stockQuantity: 65, reorderLevel: 15, unit: 'pcs' },
-  { id: 'p-2', name: 'Royal Double Quilt', sku: 'DQ-DS101', category: 'Double Quilt', subCategory: 'Double Quilt King', designNumber: 'DS-101', costPrice: 28.0, sellingPrice: 45.0, stockQuantity: 42, reorderLevel: 10, unit: 'pcs' },
-  { id: 'p-3', name: 'Classic Bedsheet Double Set', sku: 'BS-ZF1089', category: 'Bedsheet', subCategory: 'Bedsheet 3pcs', designNumber: 'ZF 1089', costPrice: 12.0, sellingPrice: 22.0, stockQuantity: 95, reorderLevel: 20, unit: 'pcs' },
-  { id: 'p-4', name: 'Deluxe Comforter 6-Piece Set', sku: 'CS-DS201', category: 'Comforter Set', subCategory: 'Comforter 6pcs', designNumber: 'DS-201', costPrice: 45.0, sellingPrice: 75.0, stockQuantity: 28, reorderLevel: 8, unit: 'pcs' },
-  { id: 'p-5', name: 'Luxury Pillow Pair', sku: 'PP-101', category: 'Pillow Pair', designNumber: '', costPrice: 4.5, sellingPrice: 9.0, stockQuantity: 150, reorderLevel: 30, unit: 'pairs' },
+  { id: 'p-1', name: 'Single Quilt Velvet', sku: 'SQ-DS201', category: 'Single Quilt', subCategory: 'Single Quilt Standard', designNumber: 'DS-201', costPrice: 18.5, sellingPrice: 28.0, stockQuantity: 65, reorderLevel: 15, unit: 'pcs', stockStatements: [{ id: 'ps-1', date: '2026-07-26', type: 'production', quantity: 65, note: 'Initial production stock', reference: 'Opening Balance' }] },
+  { id: 'p-2', name: 'Royal Double Quilt', sku: 'DQ-DS101', category: 'Double Quilt', subCategory: 'Double Quilt King', designNumber: 'DS-101', costPrice: 28.0, sellingPrice: 45.0, stockQuantity: 42, reorderLevel: 10, unit: 'pcs', stockStatements: [{ id: 'ps-2', date: '2026-07-26', type: 'production', quantity: 42, note: 'Initial production stock', reference: 'Opening Balance' }] },
+  { id: 'p-3', name: 'Classic Bedsheet Double Set', sku: 'BS-ZF1089', category: 'Bedsheet', subCategory: 'Bedsheet 3pcs', designNumber: 'ZF 1089', costPrice: 12.0, sellingPrice: 22.0, stockQuantity: 95, reorderLevel: 20, unit: 'pcs', stockStatements: [{ id: 'ps-3', date: '2026-07-26', type: 'production', quantity: 95, note: 'Initial production stock', reference: 'Opening Balance' }] },
+  { id: 'p-4', name: 'Deluxe Comforter 6-Piece Set', sku: 'CS-DS201', category: 'Comforter Set', subCategory: 'Comforter 6pcs', designNumber: 'DS-201', costPrice: 45.0, sellingPrice: 75.0, stockQuantity: 28, reorderLevel: 8, unit: 'pcs', stockStatements: [{ id: 'ps-4', date: '2026-07-26', type: 'production', quantity: 28, note: 'Initial production stock', reference: 'Opening Balance' }] },
+  { id: 'p-5', name: 'Luxury Pillow Pair', sku: 'PP-101', category: 'Pillow Pair', designNumber: '', costPrice: 4.5, sellingPrice: 9.0, stockQuantity: 150, reorderLevel: 30, unit: 'pairs', stockStatements: [{ id: 'ps-5', date: '2026-07-26', type: 'production', quantity: 150, note: 'Initial production stock', reference: 'Opening Balance' }] },
 ];
 
 const defaultParties: Party[] = [

@@ -42,6 +42,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLotId, setEditingLotId] = useState<string | null>(null);
   const [lotToDelete, setLotToDelete] = useState<FabricLot | null>(null);
+  const [selectedLotDetails, setSelectedLotDetails] = useState<FabricLot | null>(null);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -758,6 +759,13 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
 
                         <div className="flex items-center space-x-1 pl-1 border-l border-slate-200">
                           <button
+                            onClick={() => setSelectedLotDetails(lot)}
+                            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                            title="Show Lot Details"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => handleOpenEditModal(lot)}
                             className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition cursor-pointer"
                             title="Edit Lot"
@@ -848,6 +856,114 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
             )}
           </div>
         </>
+      )}
+
+      {/* Detail modal for selected fabric lot */}
+      {selectedLotDetails && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedLotDetails(null);
+          }}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-3xl w-full p-6 space-y-4 cursor-default max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">{selectedLotDetails.lotNumber}</h3>
+                <p className="text-xs text-slate-500">Full fabric lot details</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedLotDetails(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <div className="text-slate-500 mb-1">Supplier</div>
+                <div className="font-extrabold text-slate-900">{selectedLotDetails.supplierName || 'N/A'}</div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <div className="text-slate-500 mb-1">Date received</div>
+                <div className="font-extrabold text-slate-900">{selectedLotDetails.dateReceived}</div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <div className="text-slate-500 mb-1">Rate / Meter</div>
+                <div className="font-extrabold text-slate-900">{selectedLotDetails.ratePerMeter ? `Rs. ${selectedLotDetails.ratePerMeter}` : 'N/A'}</div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <div className="text-slate-500 mb-1">Payment status</div>
+                <div className="font-extrabold text-slate-900">{selectedLotDetails.paymentStatus || 'Unpaid'}</div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 md:col-span-2">
+                <div className="text-slate-500 mb-1">Supplier address</div>
+                <div className="font-extrabold text-slate-900">{selectedLotDetails.supplierAddress || 'Not provided'}</div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <div className="text-slate-500 mb-1">Total cost</div>
+                <div className="font-extrabold text-slate-900">Rs. {Number(selectedLotDetails.totalCost || 0).toLocaleString()}</div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <div className="text-slate-500 mb-1">Amount paid</div>
+                <div className="font-extrabold text-slate-900">Rs. {Number(selectedLotDetails.amountPaid || 0).toLocaleString()}</div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 md:col-span-2">
+                <div className="text-slate-500 mb-1">Notes</div>
+                <div className="font-extrabold text-slate-900">{selectedLotDetails.notes || 'No notes added'}</div>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-100 pt-3">
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">Design items</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-100 text-slate-600 uppercase tracking-wider text-[10px] font-extrabold border-b border-slate-200">
+                      <th className="py-2 px-3">Type</th>
+                      <th className="py-2 px-3">Design #</th>
+                      <th className="py-2 px-3">Name</th>
+                      <th className="py-2 px-3 text-right">Front</th>
+                      <th className="py-2 px-3 text-right">Reverse</th>
+                      <th className="py-2 px-3 text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {selectedLotDetails.designs.map((item) => {
+                      const isOther = item.fabricType === 'other' || item.fabricType === 'single_roll' || item.fabricType === 'quilting_fabric';
+                      const total = getDesignTotalMeters(item);
+                      return (
+                        <tr key={item.id} className="hover:bg-slate-50">
+                          <td className="py-2 px-3">
+                            {isOther ? (
+                              <span className="px-2 py-0.5 bg-purple-50 text-purple-800 font-extrabold text-[10px] rounded-md border border-purple-200">
+                                Other Fabric
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 bg-blue-50 text-blue-800 font-extrabold text-[10px] rounded-md border border-blue-200">
+                                Bedsheet Set
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2 px-3 font-bold text-slate-900">{item.designNumber || 'N/A'}</td>
+                          <td className="py-2 px-3 text-slate-700">{item.designName || 'Not named'}</td>
+                          <td className="py-2 px-3 text-right text-blue-700">{isOther ? '-' : `${Number(item.frontMeters || 0).toLocaleString()} m`}</td>
+                          <td className="py-2 px-3 text-right text-purple-700">{isOther ? '-' : `${Number(item.reverseMeters || 0).toLocaleString()} m`}</td>
+                          <td className="py-2 px-3 text-right font-extrabold text-slate-900">{total.toLocaleString()} m</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Fabric Loss View Tab */}

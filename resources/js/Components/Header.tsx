@@ -1,5 +1,5 @@
-import React from 'react';
-import { RefreshCw, Calendar, Factory, AlertCircle, Coins } from 'lucide-react';
+import React, { useState } from 'react';
+import { RefreshCw, Calendar, Factory, AlertCircle, Coins, Plus, Trash2, ChevronDown } from 'lucide-react';
 import { CurrencyOption, CURRENCIES } from '../types';
 
 interface HeaderProps {
@@ -17,6 +17,34 @@ export const Header: React.FC<HeaderProps> = ({
   currency,
   onCurrencyChange,
 }) => {
+  const [availableCurrencies, setAvailableCurrencies] = useState<CurrencyOption[]>(CURRENCIES);
+
+  const handleDeleteCurrency = () => {
+    if (availableCurrencies.length <= 1) return;
+
+    const remainingCurrencies = availableCurrencies.filter((item) => item.code !== currency.code);
+    setAvailableCurrencies(remainingCurrencies);
+    onCurrencyChange(remainingCurrencies[0]);
+  };
+
+  const handleAddCurrency = () => {
+    const input = window.prompt('Add currency as: CODE, SYMBOL, NAME');
+    if (!input) return;
+
+    const [rawCode, rawSymbol, ...rawName] = input.split(',');
+    const newCurrency: CurrencyOption = {
+      code: rawCode?.trim().toUpperCase() || '',
+      symbol: rawSymbol?.trim() || '',
+      name: rawName.join(',').trim(),
+    };
+
+    if (!newCurrency.code || !newCurrency.symbol || !newCurrency.name) return;
+    if (availableCurrencies.some((item) => item.code === newCurrency.code)) return;
+
+    setAvailableCurrencies((current) => [...current, newCurrency]);
+    onCurrencyChange(newCurrency);
+  };
+
   const getTabTitle = (tab: string) => {
     switch (tab) {
       case 'dashboard':
@@ -55,8 +83,20 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-indigo-600 rounded-lg text-white shadow-inner">
-            <Factory className="w-6 h-6" />
+          <div className="h-10 w-10 rounded-lg bg-white/10 p-1 border border-slate-700/60 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
+            <img
+              src="/images/logo.png"
+              alt="Zartab Fatima Collection"
+              className="h-full w-full object-contain"
+              onError={(e) => {
+                const target = e.currentTarget;
+                target.style.display = 'none';
+                if (target.nextElementSibling) {
+                  (target.nextElementSibling as HTMLElement).style.display = 'block';
+                }
+              }}
+            />
+            <Factory className="w-5 h-5 text-indigo-400 hidden" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -73,20 +113,48 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-900/40 border border-indigo-500/40 text-indigo-200 rounded-lg text-xs font-medium">
             <Coins className="w-3.5 h-3.5 text-indigo-400" />
             <span className="text-[11px] text-indigo-300 font-semibold">Currency:</span>
-            <select
-              value={currency.code}
-              onChange={(e) => {
-                const found = CURRENCIES.find((c) => c.code === e.target.value);
-                if (found) onCurrencyChange(found);
-              }}
-              className="bg-transparent text-white font-bold text-xs focus:outline-none cursor-pointer pr-1"
+            <div className="relative min-w-0 flex-1 sm:flex-none">
+              <select
+                value={currency.code}
+                onChange={(e) => {
+                  const found = availableCurrencies.find((c) => c.code === e.target.value);
+                  if (found) onCurrencyChange(found);
+                }}
+                className="w-full appearance-none bg-transparent text-white font-bold text-xs focus:outline-none cursor-pointer pr-7"
+                style={{
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  backgroundImage: 'none',
+                }}
+              >
+                {availableCurrencies.map((c) => (
+                  <option key={c.code} value={c.code} className="bg-slate-900 text-white">
+                    {c.code} ({c.symbol}) - {c.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-1 top-1/2 w-3.5 h-3.5 -translate-y-1/2 text-indigo-300" />
+            </div>
+            <button
+              type="button"
+              onClick={handleAddCurrency}
+              title="Add currency"
+              aria-label="Add currency"
+              className="p-1 text-indigo-300 hover:text-emerald-300 hover:bg-white/10 rounded transition"
             >
-              {CURRENCIES.map((c) => (
-                <option key={c.code} value={c.code} className="bg-slate-900 text-white">
-                  {c.code} ({c.symbol}) - {c.name}
-                </option>
-              ))}
-            </select>
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteCurrency}
+              disabled={availableCurrencies.length <= 1}
+              title="Delete selected currency"
+              aria-label="Delete selected currency"
+              className="p-1 text-indigo-300 hover:text-rose-300 hover:bg-white/10 rounded transition disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
           </div>
 
           {lowStockCount > 0 && (

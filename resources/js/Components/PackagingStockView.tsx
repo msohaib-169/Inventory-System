@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { RawMaterialStockItem, CurrencyOption, SupplierProfile, SupplierBill, SupplierPayment, FabricLot, WaddingStock } from '../types';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { DropdownWithDelete } from './DropdownWithDelete';
-import { Boxes, Plus, Edit2, Trash2, AlertTriangle, CheckCircle2, Search, X, Sparkles } from 'lucide-react';
+import { Boxes, Plus, Edit2, Trash2, AlertTriangle, CheckCircle2, Search, X, Sparkles, ArrowDownToLine, ClipboardList } from 'lucide-react';
 import { matchesDesignSearch } from '../lib/designSearch';
 
 import { ERPStorage, defaultPackagingHierarchy } from '../lib/storage';
@@ -45,6 +45,13 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
   const [restockItemId, setRestockItemId] = useState<string | null>(null);
   const [restockQty, setRestockQty] = useState<number>(0);
   const [restockRate, setRestockRate] = useState<number>(0);
+
+  // Usage / Statement State
+  const [usageItemId, setUsageItemId] = useState<string | null>(null);
+  const [usageQty, setUsageQty] = useState<number>(0);
+  const [usageReason, setUsageReason] = useState('');
+  const [usageDate, setUsageDate] = useState(new Date().toISOString().split('T')[0]);
+  const [statementItemId, setStatementItemId] = useState<string | null>(null);
 
   // Form State (All clean 0 defaults)
   const [name, setName] = useState('');
@@ -338,6 +345,15 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
         const newTotalCost = newTotalQty * effectiveRate;
         const currentPaid = item.amountPaid || 0;
 
+        const nextStatement = {
+          id: `pkg-restock-${Date.now()}`,
+          date: new Date().toISOString().split('T')[0],
+          type: 'production' as const,
+          quantity: qty,
+          note: 'Stock received / replenished',
+          reference: 'Restock',
+        };
+
         return {
           ...item,
           quantityInStock: item.quantityInStock + qty,
@@ -345,6 +361,7 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
           costPerUnit: effectiveRate,
           totalCost: newTotalCost,
           paymentStatus: (currentPaid >= newTotalCost && newTotalCost > 0 ? 'Paid' : currentPaid > 0 ? 'Partial' : 'Unpaid') as 'Paid' | 'Partial' | 'Unpaid',
+          stockStatements: [nextStatement, ...(item.stockStatements || [])],
         };
       }
       return item;
@@ -354,6 +371,55 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
     setRestockItemId(null);
     setRestockQty(0);
   };
+
+  const openUsageModal = (item: RawMaterialStockItem) => {
+    setUsageItemId(item.id);
+    setUsageQty(0);
+    setUsageReason('');
+    setUsageDate(new Date().toISOString().split('T')[0]);
+  };
+
+  const handleSaveUsage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!usageItemId) return;
+
+    const target = rawMaterials.find((item) => item.id === usageItemId);
+    if (!target) return;
+
+    const qty = Number(usageQty) || 0;
+    if (qty <= 0) return;
+    if (qty > (target.quantityInStock || 0)) {
+      setUsageQty(target.quantityInStock || 0);
+      return;
+    }
+
+    const updated = rawMaterials.map((item) => {
+      if (item.id !== usageItemId) return item;
+
+      const nextStatement = {
+        id: `pkg-usage-${Date.now()}`,
+        date: usageDate,
+        type: 'usage' as const,
+        quantity: qty,
+        note: usageReason.trim() || 'Packaging stock used / issued from store',
+        reference: 'Packaging Usage',
+      };
+
+      return {
+        ...item,
+        quantityInStock: Math.max(0, item.quantityInStock - qty),
+        stockStatements: [nextStatement, ...(item.stockStatements || [])],
+      };
+    });
+
+    onSaveRawMaterials(updated);
+    setUsageItemId(null);
+    setUsageQty(0);
+    setUsageReason('');
+  };
+
+  const selectedUsageItem = rawMaterials.find((item) => item.id === usageItemId) || null;
+  const selectedStatementItem = rawMaterials.find((item) => item.id === statementItemId) || null;
 
   // Filtering
   const filteredMaterials = rawMaterials.filter((item) => {
@@ -633,6 +699,20 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
                       <td className="py-3 px-4 text-center">
                         <div className="flex items-center justify-center space-x-1">
                           <button
+                            onClick={() => openUsageModal(item)}
+                            className="p-1.5 text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded transition cursor-pointer"
+                            title="Use Packaging / Deduct Stock"
+                          >
+                            <ArrowDownToLine className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setStatementItemId(item.id)}
+                            className="p-1.5 text-sky-600 hover:text-sky-700 hover:bg-sky-50 rounded transition cursor-pointer"
+                            title="View Packaging Statement"
+                          >
+                            <ClipboardList className="w-3.5 h-3.5" />
+                          </button>
+                          <button
                             onClick={() => handleOpenRestock(item.id)}
                             className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded text-[11px] border border-emerald-200 transition cursor-pointer"
                             title="Restock Item"
@@ -663,6 +743,137 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
           </table>
         </div>
       </div>
+
+      {/* Packaging Usage / Deduction Modal */}
+      {usageItemId && selectedUsageItem && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setUsageItemId(null);
+          }}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-4 cursor-default"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Use Packaging / Deduct Stock</h3>
+                <p className="text-xs text-slate-500">{selectedUsageItem.name}</p>
+              </div>
+              <div className="rounded-full bg-violet-100 p-2 text-violet-700">
+                <ArrowDownToLine className="w-4 h-4" />
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveUsage} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Quantity to Use *</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={usageQty}
+                    onChange={(e) => setUsageQty(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-extrabold text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={usageDate}
+                    onChange={(e) => setUsageDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Usage / Reason Statement</label>
+                <input
+                  type="text"
+                  value={usageReason}
+                  onChange={(e) => setUsageReason(e.target.value)}
+                  placeholder="e.g. Issued to stitching / warehouse transfer"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-800"
+                />
+              </div>
+
+              <div className="p-2.5 bg-violet-50 rounded-lg border border-violet-200 text-xs font-bold text-violet-900">
+                Current stock: {selectedUsageItem.quantityInStock} {selectedUsageItem.unit}
+              </div>
+
+              <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-600">
+                Remaining after deduction: <span className="font-extrabold text-slate-900">{Math.max(0, selectedUsageItem.quantityInStock - usageQty)} {selectedUsageItem.unit}</span>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setUsageItemId(null)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-lg shadow"
+                >
+                  Deduct & Save Statement
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Packaging Statement Summary */}
+      {selectedStatementItem && (
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <ClipboardList className="w-4 h-4 text-slate-600" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">Stock Statement</h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStatementItemId(null)}
+              className="text-[10px] text-slate-500 hover:text-slate-700"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="mb-2 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-[11px] font-bold text-slate-800">
+            {selectedStatementItem.name}
+          </div>
+
+          {selectedStatementItem.stockStatements && selectedStatementItem.stockStatements.length > 0 ? (
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {selectedStatementItem.stockStatements.map((statement) => (
+                <div key={statement.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-[11px]">
+                  <div>
+                    <div className="font-bold text-slate-800">
+                      {statement.type === 'production' ? 'Stock added' : statement.type === 'usage' ? 'Stock used' : 'Adjustment'}: {statement.quantity} {selectedStatementItem.unit || 'pcs'}
+                    </div>
+                    <div className="text-slate-500">{statement.note || 'No note'}</div>
+                  </div>
+                  <div className="text-right text-slate-500">
+                    <div>{statement.date}</div>
+                    <div className="font-semibold text-indigo-700">{statement.reference || 'Statement'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-slate-200 bg-white px-2.5 py-3 text-[11px] text-slate-500">
+              No stock statements available for this item yet.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Restock Modal */}
       {restockItemId && (

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { FinishedProduct, CurrencyOption } from '../types';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { DropdownWithDelete } from './DropdownWithDelete';
-import { Package, Plus, Edit2, Trash2, DollarSign, TrendingUp, AlertTriangle, CheckCircle2, Search, Filter, X, Sparkles } from 'lucide-react';
+import { Package, Plus, Edit2, Trash2, DollarSign, TrendingUp, AlertTriangle, CheckCircle2, Search, Filter, X, Sparkles, ArrowDownToLine, ClipboardList } from 'lucide-react';
 import { matchesDesignSearch } from '../lib/designSearch';
 
 interface ProductsStockViewProps {
@@ -42,6 +42,12 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
   const [stockQuantity, setStockQuantity] = useState<number>(0);
   const [reorderLevel, setReorderLevel] = useState<number>(0);
   const [unit, setUnit] = useState('pcs');
+
+  const [usageProductId, setUsageProductId] = useState<string | null>(null);
+  const [usageQty, setUsageQty] = useState<number>(0);
+  const [usageReason, setUsageReason] = useState('');
+  const [usageDate, setUsageDate] = useState(new Date().toISOString().split('T')[0]);
+  const [statementProductId, setStatementProductId] = useState<string | null>(null);
 
   // Dynamic product category hierarchy state loaded from storage
   const [hierarchy, setHierarchy] = useState<Record<string, string[]>>(() => {
@@ -236,6 +242,14 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
         stockQuantity: stock,
         reorderLevel: reorder,
         unit,
+        stockStatements: stock > 0 ? [{
+          id: `prod-opening-${Date.now()}`,
+          date: new Date().toISOString().split('T')[0],
+          type: 'production',
+          quantity: stock,
+          note: 'Opening stock added to finished goods inventory',
+          reference: 'Opening Balance',
+        }] : [],
       };
       onSaveProducts([newProduct, ...products]);
     }
@@ -313,6 +327,55 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
       setSubCategoryToDelete(null);
     }
   };
+
+  const openUsageModal = (product: FinishedProduct) => {
+    setUsageProductId(product.id);
+    setUsageQty(0);
+    setUsageReason('');
+    setUsageDate(new Date().toISOString().split('T')[0]);
+  };
+
+  const handleSaveUsage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!usageProductId) return;
+
+    const currentProduct = products.find((p) => p.id === usageProductId);
+    if (!currentProduct) return;
+
+    const qty = Number(usageQty) || 0;
+    if (qty <= 0) return;
+    if (qty > (currentProduct.stockQuantity || 0)) {
+      setUsageQty(currentProduct.stockQuantity || 0);
+      return;
+    }
+
+    const updated = products.map((product) => {
+      if (product.id !== usageProductId) return product;
+
+      const nextStatement = {
+        id: `prod-usage-${Date.now()}`,
+        date: usageDate,
+        type: 'usage' as const,
+        quantity: qty,
+        note: usageReason.trim() || 'Stock issued / deducted from warehouse',
+        reference: 'Product Usage',
+      };
+
+      return {
+        ...product,
+        stockQuantity: Math.max(0, (product.stockQuantity || 0) - qty),
+        stockStatements: [nextStatement, ...(product.stockStatements || [])],
+      };
+    });
+
+    onSaveProducts(updated);
+    setUsageProductId(null);
+    setUsageQty(0);
+    setUsageReason('');
+  };
+
+  const selectedUsageProduct = products.find((p) => p.id === usageProductId) || null;
+  const selectedStatementProduct = products.find((p) => p.id === statementProductId) || null;
 
   return (
     <div className="space-y-6">
@@ -533,6 +596,20 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
                       <td className="py-3 px-4 text-center">
                         <div className="flex items-center justify-center space-x-1">
                           <button
+                            onClick={() => openUsageModal(p)}
+                            className="p-1.5 text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded transition cursor-pointer"
+                            title="Use Product / Deduct Stock"
+                          >
+                            <ArrowDownToLine className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setStatementProductId(p.id)}
+                            className="p-1.5 text-sky-600 hover:text-sky-700 hover:bg-sky-50 rounded transition cursor-pointer"
+                            title="View Product Statement"
+                          >
+                            <ClipboardList className="w-3.5 h-3.5" />
+                          </button>
+                          <button
                             onClick={() => handleOpenEditModal(p)}
                             className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 rounded transition cursor-pointer"
                             title="Edit Product"
@@ -556,6 +633,91 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
           </table>
         </div>
       </div>
+
+      {/* Product Usage / Deduction Modal */}
+      {usageProductId && selectedUsageProduct && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setUsageProductId(null);
+          }}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-4 cursor-default"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Use Product / Deduct Stock</h3>
+                <p className="text-xs text-slate-500">{selectedUsageProduct.name}</p>
+              </div>
+              <div className="rounded-full bg-violet-100 p-2 text-violet-700">
+                <ArrowDownToLine className="w-4 h-4" />
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveUsage} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Quantity to Use *</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={usageQty}
+                    onChange={(e) => setUsageQty(Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-extrabold text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={usageDate}
+                    onChange={(e) => setUsageDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Usage / Reason Statement</label>
+                <input
+                  type="text"
+                  value={usageReason}
+                  onChange={(e) => setUsageReason(e.target.value)}
+                  placeholder="e.g. Issued to stitching / warehouse transfer"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-800"
+                />
+              </div>
+
+              <div className="p-2.5 bg-violet-50 rounded-lg border border-violet-200 text-xs font-bold text-violet-900">
+                Current stock: {selectedUsageProduct.stockQuantity} {selectedUsageProduct.unit}
+              </div>
+
+              <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-600">
+                Remaining after deduction: <span className="font-extrabold text-slate-900">{Math.max(0, selectedUsageProduct.stockQuantity - usageQty)} {selectedUsageProduct.unit}</span>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setUsageProductId(null)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-lg shadow"
+                >
+                  Deduct & Save Statement
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Add / Edit Product Modal */}
       {isModalOpen && (
@@ -791,6 +953,52 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Product Statement Summary */}
+      {selectedStatementProduct && (
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <ClipboardList className="w-4 h-4 text-slate-600" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">Stock Statement</h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStatementProductId(null)}
+              className="text-[10px] text-slate-500 hover:text-slate-700"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="mb-2 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-[11px] font-bold text-slate-800">
+            {selectedStatementProduct.name}
+          </div>
+
+          {selectedStatementProduct.stockStatements && selectedStatementProduct.stockStatements.length > 0 ? (
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {selectedStatementProduct.stockStatements.map((statement) => (
+                <div key={statement.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-[11px]">
+                  <div>
+                    <div className="font-bold text-slate-800">
+                      {statement.type === 'production' ? 'Production added' : statement.type === 'usage' ? 'Stock used' : 'Adjustment'}: {statement.quantity} {selectedStatementProduct.unit || 'pcs'}
+                    </div>
+                    <div className="text-slate-500">{statement.note || 'No note'}</div>
+                  </div>
+                  <div className="text-right text-slate-500">
+                    <div>{statement.date}</div>
+                    <div className="font-semibold text-indigo-700">{statement.reference || 'Statement'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-slate-200 bg-white px-2.5 py-3 text-[11px] text-slate-500">
+              No stock statements available for this product yet.
+            </div>
+          )}
         </div>
       )}
 
