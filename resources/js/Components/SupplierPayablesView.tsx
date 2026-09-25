@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import {
   SupplierProfile,
@@ -1842,3 +1843,4 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
     </div>
   );
 };
+

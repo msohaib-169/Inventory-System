@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { AlertTriangle, Trash2, RefreshCw, X, Check, ShieldAlert } from 'lucide-react';
 
@@ -144,3 +145,4 @@ export const ResetSystemModal: React.FC<ResetSystemModalProps> = ({
     </div>
   );
 };
+

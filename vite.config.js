@@ -17,6 +17,10 @@ export default defineConfig({
             protocol: 'ws',
         },
     },
+    build: {
+        outDir: 'dist',
+        emptyOutDir: true,
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'resources/js'),

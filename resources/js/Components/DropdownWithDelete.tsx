@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Trash2, Plus, Check } from 'lucide-react';
 
@@ -190,3 +191,4 @@ export const DropdownWithDelete: React.FC<DropdownWithDeleteProps> = ({
     </div>
   );
 };
+

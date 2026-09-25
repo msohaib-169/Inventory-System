@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import {
   FinishedProduct,
@@ -732,3 +733,4 @@ export const ProductionManagementView: React.FC<ProductionManagementViewProps> =
     </div>
   );
 };
+

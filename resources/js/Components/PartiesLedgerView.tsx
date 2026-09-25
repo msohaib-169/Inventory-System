@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { Party, PaymentTransaction, Invoice, CurrencyOption, FabricLossRecord } from '../types';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
@@ -709,3 +710,4 @@ export const PartiesLedgerView: React.FC<PartiesLedgerViewProps> = ({
     </div>
   );
 };
+

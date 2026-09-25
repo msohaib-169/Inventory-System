@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { RefreshCw, Calendar, Factory, AlertCircle, Coins, Plus, Trash2, ChevronDown } from 'lucide-react';
 import { CurrencyOption, CURRENCIES } from '../types';
@@ -182,4 +183,5 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
+
 

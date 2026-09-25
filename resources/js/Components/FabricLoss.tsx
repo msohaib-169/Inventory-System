@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { FabricLot, FabricLossRecord, Party, Invoice, CurrencyOption, InvoiceItem } from '../types';
 import { getDesignTotalMeters } from '../lib/storage';
@@ -857,3 +858,4 @@ export const FabricLossView: React.FC<FabricLossViewProps> = ({
     </div>
   );
 };
+

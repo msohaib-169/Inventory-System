@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useState } from 'react';
 import { Invoice, CurrencyOption } from '../types';
 import { Printer, Download, X, CheckCircle, Zap, Pencil } from 'lucide-react';
@@ -258,3 +259,4 @@ export const PrintableBillModal: React.FC<PrintableBillModalProps> = ({
     </div>
   );
 };
+

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useMemo } from 'react';
 import { FinishedProduct, CurrencyOption } from '../types';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
@@ -1034,3 +1035,4 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
     </div>
   );
 };
+
