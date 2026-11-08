@@ -105,15 +105,15 @@ export const CuttingManagementView: React.FC<CuttingManagementViewProps> = ({
     ) {
       setDeductWadding(true);
       if (lower.includes('single')) {
-        setWaddingKgPerPiece(selectedWaddingItem?.singleQuiltSpecKg || wadding?.singleQuiltSpecKg || 0.8);
+        setWaddingKgPerPiece(selectedWaddingItem?.singleQuiltSpecKg ?? wadding?.singleQuiltSpecKg ?? 0);
       } else if (lower.includes('double') || lower.includes('king') || lower.includes('queen')) {
-        setWaddingKgPerPiece(selectedWaddingItem?.doubleQuiltSpecKg || wadding?.doubleQuiltSpecKg || 1.4);
+        setWaddingKgPerPiece(selectedWaddingItem?.doubleQuiltSpecKg ?? wadding?.doubleQuiltSpecKg ?? 0);
       } else if (lower.includes('gadda') || lower.includes('mattress')) {
-        setWaddingKgPerPiece(selectedWaddingItem?.gaddaSpecKg || wadding?.gaddaSpecKg || 2.0);
+        setWaddingKgPerPiece(selectedWaddingItem?.gaddaSpecKg ?? wadding?.gaddaSpecKg ?? 0);
       } else if (lower.includes('comforter')) {
-        setWaddingKgPerPiece(2.5);
+        setWaddingKgPerPiece(0);
       } else {
-        setWaddingKgPerPiece(selectedWaddingItem?.doubleQuiltSpecKg || wadding?.doubleQuiltSpecKg || 1.4);
+        setWaddingKgPerPiece(selectedWaddingItem?.doubleQuiltSpecKg ?? wadding?.doubleQuiltSpecKg ?? 0);
       }
     } else {
       // Default: do not deduct wadding unless user manually enables it
@@ -128,11 +128,11 @@ export const CuttingManagementView: React.FC<CuttingManagementViewProps> = ({
     if (item && deductWadding) {
       const lower = productType.toLowerCase();
       if (lower.includes('single')) {
-        setWaddingKgPerPiece(item.singleQuiltSpecKg || 0.8);
+        setWaddingKgPerPiece(item.singleQuiltSpecKg ?? 0);
       } else if (lower.includes('double') || lower.includes('king') || lower.includes('queen')) {
-        setWaddingKgPerPiece(item.doubleQuiltSpecKg || 1.4);
+        setWaddingKgPerPiece(item.doubleQuiltSpecKg ?? 0);
       } else if (lower.includes('gadda') || lower.includes('mattress')) {
-        setWaddingKgPerPiece(item.gaddaSpecKg || 2.0);
+        setWaddingKgPerPiece(item.gaddaSpecKg ?? 0);
       }
     }
   };
@@ -709,7 +709,7 @@ export const CuttingManagementView: React.FC<CuttingManagementViewProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Double Quilt, Single Quilt, Bedsheet, Gadda..."
+                    placeholder="Product category"
                     value={productType}
                     onChange={(e) => handleProductTypeInputChange(e.target.value)}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -940,7 +940,7 @@ export const CuttingManagementView: React.FC<CuttingManagementViewProps> = ({
                         const checked = e.target.checked;
                         setDeductWadding(checked);
                         if (checked && waddingKgPerPiece === 0) {
-                          setWaddingKgPerPiece(selectedWaddingItem?.doubleQuiltSpecKg || wadding?.doubleQuiltSpecKg || 1.4);
+                          setWaddingKgPerPiece(selectedWaddingItem?.doubleQuiltSpecKg ?? wadding?.doubleQuiltSpecKg ?? 0);
                         }
                       }}
                       className="w-4 h-4 text-emerald-500 rounded border-emerald-600 focus:ring-emerald-500 cursor-pointer"
@@ -1058,7 +1058,7 @@ export const CuttingManagementView: React.FC<CuttingManagementViewProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Cutting Note / Operator</label>
                 <input
                   type="text"
-                  placeholder="e.g. Master Khalid Cutting Table #1"
+                  placeholder="Workstation or table"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-800"

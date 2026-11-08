@@ -11,15 +11,6 @@ class WaddingStockController extends Controller
     public function index()
     {
         $stock = WaddingStock::first();
-        if (!$stock) {
-            $stock = WaddingStock::create([
-                'total_purchased_kg' => 0,
-                'used_kg' => 0,
-                'available_kg' => 0,
-                'single_quilt_spec_kg' => 0.8,
-                'double_quilt_spec_kg' => 1.4,
-            ]);
-        }
 
         $items = Waddingitems::all()->map(function ($i) {
             return [
@@ -49,11 +40,11 @@ class WaddingStockController extends Controller
         });
 
         return response()->json([
-            'totalPurchasedKg' => (float)$stock->total_purchased_kg,
-            'usedKg' => (float)$stock->used_kg,
-            'availableKg' => (float)$stock->available_kg,
-            'singleQuiltSpecKg' => (float)$stock->single_quilt_spec_kg,
-            'doubleQuiltSpecKg' => (float)$stock->double_quilt_spec_kg,
+            'totalPurchasedKg' => (float)($stock->total_purchased_kg ?? 0),
+            'usedKg' => (float)($stock->used_kg ?? 0),
+            'availableKg' => (float)($stock->available_kg ?? 0),
+            'singleQuiltSpecKg' => (float)($stock->single_quilt_spec_kg ?? 0),
+            'doubleQuiltSpecKg' => (float)($stock->double_quilt_spec_kg ?? 0),
             'items' => $items,
         ]);
     }
@@ -69,8 +60,8 @@ class WaddingStockController extends Controller
         $stock->total_purchased_kg = $wadding['totalPurchasedKg'] ?? 0;
         $stock->used_kg = $wadding['usedKg'] ?? 0;
         $stock->available_kg = $wadding['availableKg'] ?? 0;
-        $stock->single_quilt_spec_kg = $wadding['singleQuiltSpecKg'] ?? 0.8;
-        $stock->double_quilt_spec_kg = $wadding['doubleQuiltSpecKg'] ?? 1.4;
+        $stock->single_quilt_spec_kg = $wadding['singleQuiltSpecKg'] ?? 0;
+        $stock->double_quilt_spec_kg = $wadding['doubleQuiltSpecKg'] ?? 0;
         $stock->save();
 
         // Sync Wadding items

@@ -11,6 +11,7 @@ import {
   Party,
   PaymentTransaction,
   Invoice,
+  ProductReturn,
   SupplierProfile,
   SupplierBill,
   SupplierPayment,
@@ -135,6 +136,21 @@ export const ERPAPI = {
     return res.data;
   },
 
+  async fetchReturns(): Promise<ProductReturn[]> {
+    const res = await axios.get(`${API_BASE}/returns`);
+    return res.data;
+  },
+
+  async createReturn(data: {
+    invoiceItemId: string;
+    quantity: number;
+    date: string;
+    notes?: string;
+  }): Promise<{ return: ProductReturn; productStockQuantity: number }> {
+    const res = await axios.post(`${API_BASE}/returns`, data);
+    return res.data;
+  },
+
   async fetchSuppliers(): Promise<{ suppliers: SupplierProfile[]; bills: SupplierBill[]; payments: SupplierPayment[] }> {
     const res = await axios.get(`${API_BASE}/suppliers`);
     return res.data;
@@ -153,7 +169,4 @@ export const ERPAPI = {
     await axios.post(`${API_BASE}/reset/clear`);
   },
 
-  async resetToDefault(): Promise<void> {
-    await axios.post(`${API_BASE}/reset/default`);
-  },
 };

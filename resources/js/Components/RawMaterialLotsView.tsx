@@ -80,7 +80,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
     'Given to Customer (Sample / Loss)' | 'Cutting Scrap & Waste' | 'Defect / Quality Damage' | 'Other Loss'
   >('Given to Customer (Sample / Loss)');
   const [lossPartyName, setLossPartyName] = useState('');
-  const [lossMeters, setLossMeters] = useState<number>(10);
+  const [lossMeters, setLossMeters] = useState<number>(0);
   const [lossNotes, setLossNotes] = useState('');
   const [lossFilterCategory, setLossFilterCategory] = useState<string>('all');
   const [lotPaymentFilter, setLotPaymentFilter] = useState<'all' | 'has_dues' | 'paid'>('all');
@@ -129,7 +129,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
 
   const handleOpenAddModal = () => {
     setEditingLotId(null);
-    setLotNumber(`LOT-${new Date().getFullYear()}-${String(lots.length + 1).padStart(3, '0')}`);
+    setLotNumber('');
     setSupplierName('');
     setSupplierAddress('');
     setDateReceived(new Date().toISOString().split('T')[0]);
@@ -173,7 +173,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
       ...prev,
       {
         id: `design-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
-        designNumber: `DS-${Math.floor(100 + Math.random() * 900)}`,
+        designNumber: '',
         designName: '',
         frontMeters: 0,
         reverseMeters: 0,
@@ -197,7 +197,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
           if (value === 'other') {
             updated.frontMeters = 0;
             updated.reverseMeters = 0;
-            if (!updated.totalMeters) updated.totalMeters = 200;
+            if (!updated.totalMeters) updated.totalMeters = 0;
           } else {
             if (!updated.frontMeters && !updated.reverseMeters && updated.totalMeters) {
               updated.frontMeters = Math.round(updated.totalMeters / 2);
@@ -387,11 +387,11 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
   // Loss Handlers
   const handleOpenAddLossModal = () => {
     setLossDate(new Date().toISOString().split('T')[0]);
-    setLossLotNumber(lots[0]?.lotNumber || 'LOT-2026-101');
-    setLossDesignName(lots[0]?.designs[0]?.designName || 'General Sample');
+    setLossLotNumber(lots[0]?.lotNumber || '');
+    setLossDesignName(lots[0]?.designs[0]?.designName || '');
     setLossCategory('Given to Customer (Sample / Loss)');
     setLossPartyName('');
-    setLossMeters(10);
+    setLossMeters(0);
     setLossNotes('');
     setIsLossModalOpen(true);
   };
@@ -586,7 +586,6 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Total Purchase Cost</span>
-            <DollarSign className="w-4 h-4 text-indigo-600" />
           </div>
           <h2 className="text-2xl font-black text-slate-900">Rs. {overallTotalPurchaseCost.toLocaleString()}</h2>
           <p className="text-[11px] text-slate-500 mt-0.5">Total fabric invoice value</p>
@@ -624,7 +623,6 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
                 onClick={handleOpenAddModal}
                 className="flex items-center space-x-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl transition shadow-2xs cursor-pointer shrink-0"
               >
-                <Plus className="w-4 h-4" />
                 <span>+ Add New Fabric Lot</span>
               </button>
             </div>
@@ -1100,7 +1098,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
                     required
                     value={lotNumber}
                     onChange={(e) => setLotNumber(e.target.value)}
-                    placeholder="e.g. LOT-2026-105"
+                    placeholder="Lot number"
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
@@ -1112,7 +1110,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
                     required
                     value={supplierName}
                     onChange={(e) => setSupplierName(e.target.value)}
-                    placeholder="e.g. Sunrise Textile Mill"
+                    placeholder="Supplier name"
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
@@ -1123,7 +1121,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
                     type="text"
                     value={supplierAddress}
                     onChange={(e) => setSupplierAddress(e.target.value)}
-                    placeholder="e.g. Mills Road, Faisalabad"
+                    placeholder="Supplier address"
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
@@ -1181,7 +1179,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
                           <label className="block text-[10px] font-extrabold text-slate-500 mb-0.5">Design / Code #</label>
                           <input
                             type="text"
-                            placeholder="DS-101"
+                            placeholder="Design number"
                             value={d.designNumber}
                             onChange={(e) => handleDesignChange(index, 'designNumber', e.target.value)}
                             className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-bold text-slate-800 font-mono"
@@ -1191,11 +1189,11 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
                         {/* Fabric / Design Name */}
                         <div className={isOther ? 'col-span-8 sm:col-span-4' : 'col-span-8 sm:col-span-3'}>
                           <label className="block text-[10px] font-extrabold text-slate-500 mb-0.5">
-                            {isOther ? 'Fabric Name (e.g. White, Macro, Lining)' : 'Pattern / Design Name'}
+                            {isOther ? 'Fabric Name' : 'Pattern / Design Name'}
                           </label>
                           <input
                             type="text"
-                            placeholder={isOther ? 'e.g. White Fabric / Macro / Poly' : 'e.g. Royal Floral Red'}
+                            placeholder={isOther ? 'Fabric name' : 'Pattern or design name'}
                             value={d.designName}
                             onChange={(e) => handleDesignChange(index, 'designName', e.target.value)}
                             className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-xs text-slate-800 font-semibold"
@@ -1291,7 +1289,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
                     <input
                       type="number"
                       min="0"
-                      placeholder="e.g. 180"
+                      placeholder="GSM"
                       value={ratePerMeter !== undefined ? ratePerMeter : ''}
                       onChange={(e) => handleRateChange(e.target.value ? Number(e.target.value) : undefined)}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-800 bg-white"
@@ -1315,7 +1313,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
                     <input
                       type="number"
                       min="0"
-                      placeholder="e.g. 50000"
+                      placeholder="Total cost"
                       value={amountPaid || ''}
                       onChange={(e) => handleAmountPaidChange(Number(e.target.value))}
                       className="w-full px-3 py-2 border border-emerald-400 rounded-lg text-xs font-black text-emerald-950 bg-emerald-50"
@@ -1334,7 +1332,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
                   <label className="block text-[11px] font-semibold text-slate-700 mb-1">Payment Remarks / Details</label>
                   <input
                     type="text"
-                    placeholder="e.g. Paid cash 50k on delivery, 25k balance payable next month..."
+                    placeholder="Payment notes"
                     value={paymentNotes}
                     onChange={(e) => setPaymentNotes(e.target.value)}
                     className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs text-slate-800 bg-white"
@@ -1426,7 +1424,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Note / Bank Reference</label>
                 <input
                   type="text"
-                  placeholder="e.g. Bank Transfer / Cash Ref #492"
+                  placeholder="Payment reference"
                   value={quickPayNotes}
                   onChange={(e) => setQuickPayNotes(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs"
@@ -1507,7 +1505,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Design / Pattern Name</label>
                   <input
                     type="text"
-                    placeholder="e.g. Royal Floral Red"
+                    placeholder="Design name"
                     value={lossDesignName}
                     onChange={(e) => setLossDesignName(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs"
@@ -1536,7 +1534,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Al-Rahman Traders"
+                    placeholder="Party name"
                     value={lossPartyName}
                     onChange={(e) => setLossPartyName(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs"
@@ -1563,7 +1561,7 @@ export const RawMaterialLotsView: React.FC<RawMaterialLotsViewProps> = ({
                   rows={2}
                   value={lossNotes}
                   onChange={(e) => setLossNotes(e.target.value)}
-                  placeholder="e.g. Customer requested 10 meters sample cut before issuing bulk order..."
+                  placeholder="Notes"
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs"
                 ></textarea>
               </div>

@@ -126,12 +126,12 @@ export const PrintableBillModal: React.FC<PrintableBillModalProps> = ({
               <p className="text-[10px] sm:text-[11px] text-slate-300 font-medium">Textile & Quilt Manufacturing Industries</p>
             </div>
 
-            <p className="text-xs font-semibold text-slate-700">
-              {COMPANY_INFO.address}
-            </p>
-            <p className="text-[11px] text-slate-600 mt-0.5">
-              Ph: {COMPANY_INFO.phone}
-            </p>
+            {COMPANY_INFO.address && (
+              <p className="text-xs font-semibold text-slate-700">{COMPANY_INFO.address}</p>
+            )}
+            {COMPANY_INFO.phone && (
+              <p className="text-[11px] text-slate-600 mt-0.5">Ph: {COMPANY_INFO.phone}</p>
+            )}
           </div>
 
           {/* Invoice Date & Party Info */}

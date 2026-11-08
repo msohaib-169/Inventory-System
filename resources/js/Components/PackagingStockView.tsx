@@ -6,7 +6,7 @@ import { DropdownWithDelete } from './DropdownWithDelete';
 import { Boxes, Plus, Edit2, Trash2, AlertTriangle, CheckCircle2, Search, X, Sparkles, ArrowDownToLine, ClipboardList } from 'lucide-react';
 import { matchesDesignSearch } from '../lib/designSearch';
 
-import { ERPStorage, defaultPackagingHierarchy } from '../lib/storage';
+import { ERPStorage } from '../lib/storage';
 
 interface PackagingStockViewProps {
   rawMaterials: RawMaterialStockItem[];
@@ -56,8 +56,8 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
 
   // Form State (All clean 0 defaults)
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<string>('Label');
-  const [subCategory, setSubCategory] = useState<string>('Label 1');
+  const [category, setCategory] = useState<string>('');
+  const [subCategory, setSubCategory] = useState<string>('');
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [customCategoryInput, setCustomCategoryInput] = useState('');
   const [isCustomSubCategory, setIsCustomSubCategory] = useState(false);
@@ -80,11 +80,7 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
   const currSym = currency?.symbol || 'Rs.';
 
   // Derived list of all known categories strictly from dynamic hierarchy
-  const allKnownCategories = useMemo(() => {
-    const keys = Object.keys(hierarchy);
-    if (keys.length === 0) return Object.keys(defaultPackagingHierarchy);
-    return keys;
-  }, [hierarchy]);
+  const allKnownCategories = useMemo(() => Object.keys(hierarchy), [hierarchy]);
 
   // Derived list of subcategories for currently active category strictly from dynamic hierarchy
   const availableSubCategories = useMemo(() => {
@@ -95,10 +91,10 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
   const activeCategory = isCustomCategory ? customCategoryInput.trim() : category;
   const isCardsCategory = (activeCategory || '').toLowerCase().includes('card');
 
-  const handleOpenAddModal = (defaultCategory: string = 'Label') => {
+  const handleOpenAddModal = (defaultCategory: string = '') => {
     setEditingItemId(null);
     setName('');
-    const targetCat = allKnownCategories.includes(defaultCategory) ? defaultCategory : (allKnownCategories[0] || 'Label');
+    const targetCat = allKnownCategories.includes(defaultCategory) ? defaultCategory : (allKnownCategories[0] || '');
     setCategory(targetCat);
     setIsCustomCategory(false);
     setCustomCategoryInput('');
@@ -121,7 +117,7 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
   const handleOpenEditModal = (item: RawMaterialStockItem) => {
     setEditingItemId(item.id);
     setName(item.name);
-    setCategory(item.category || 'Label');
+    setCategory(item.category || '');
     setIsCustomCategory(false);
     setCustomCategoryInput('');
     setSubCategory(item.subCategory || '');
@@ -520,7 +516,7 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
-              placeholder="Search by Design # (e.g. ZF 1089), Item, Category..."
+              placeholder="Search design, item, or category"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -797,7 +793,7 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
                   type="text"
                   value={usageReason}
                   onChange={(e) => setUsageReason(e.target.value)}
-                  placeholder="e.g. Issued to stitching / warehouse transfer"
+                  placeholder="Issue purpose"
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-800"
                 />
               </div>
@@ -974,7 +970,7 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Woven Satin Label #1 or Card ZF 1089"
+                  placeholder="Item name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -1049,7 +1045,7 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
                     <div className="space-y-1">
                       <input
                         type="text"
-                        placeholder="e.g. Label 1, Bag 2, Stiffner 3"
+                        placeholder="Sub-category"
                         value={customSubCategoryInput}
                         onChange={(e) => setCustomSubCategoryInput(e.target.value)}
                         className="w-full px-3 py-2 border border-indigo-400 bg-indigo-50/50 rounded-lg text-xs font-bold text-indigo-900"
@@ -1083,7 +1079,7 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. ZF 1089, ZF 1090, DS-102"
+                      placeholder="Design numbers"
                     value={cardDesignsInput}
                     onChange={(e) => setCardDesignsInput(e.target.value)}
                     className="w-full px-3 py-2 border border-amber-300 bg-white rounded-lg text-xs font-bold text-amber-950 focus:ring-2 focus:ring-amber-500 focus:outline-none"
@@ -1152,7 +1148,7 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
                     <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Supplier Name</label>
                     <input
                       type="text"
-                      placeholder="e.g. Al-Madina Packaging"
+                      placeholder="Supplier name"
                       value={supplierName}
                       onChange={(e) => setSupplierName(e.target.value)}
                       className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-medium text-slate-800 bg-white"
@@ -1162,7 +1158,7 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
                     <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Supplier Address</label>
                     <input
                       type="text"
-                      placeholder="e.g. Factory Area / Market, Faisalabad"
+                      placeholder="Supplier address"
                       value={supplierAddress}
                       onChange={(e) => setSupplierAddress(e.target.value)}
                       className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-medium text-slate-800 bg-white"
@@ -1175,7 +1171,7 @@ export const PackagingStockView: React.FC<PackagingStockViewProps> = ({
                     <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Lot / Invoice #</label>
                     <input
                       type="text"
-                      placeholder="e.g. PKG-2026-01"
+                      placeholder="Lot number"
                       value={lotNumber}
                       onChange={(e) => setLotNumber(e.target.value)}
                       className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-medium text-slate-800 bg-white"

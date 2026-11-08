@@ -92,8 +92,8 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
   // Supplier Form State
   const [supplierName, setSupplierName] = useState('');
   const [companyName, setCompanyName] = useState('');
-  const [phone, setPhone] = useState('+92 ');
-  const [city, setCity] = useState('Faisalabad');
+  const [phone, setPhone] = useState('');
+  const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [supplierCat, setSupplierCat] = useState<SupplierCategory>('fabric');
   const [supplierNotes, setSupplierNotes] = useState('');
@@ -230,8 +230,8 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
     setEditingSupplierId(null);
     setSupplierName('');
     setCompanyName('');
-    setPhone('+92 ');
-    setCity('Faisalabad');
+    setPhone('');
+    setCity('');
     setAddress('');
     setSupplierCat('fabric');
     setSupplierNotes('');
@@ -242,8 +242,8 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
     setEditingSupplierId(sup.id);
     setSupplierName(sup.name);
     setCompanyName(sup.companyName || sup.name);
-    setPhone(sup.phone || '+92 ');
-    setCity(sup.city || 'Faisalabad');
+    setPhone(sup.phone || '');
+    setCity(sup.city || '');
     setAddress(sup.address || '');
     setSupplierCat(sup.category);
     setSupplierNotes(sup.notes || '');
@@ -301,7 +301,7 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
 
   // Bill CRUD
   const handleOpenAddBill = (presetSupName?: string) => {
-    const defaultSup = presetSupName || suppliers[0]?.name || 'Sunrise Textile Mills';
+    const defaultSup = presetSupName || suppliers[0]?.name || '';
     const foundSup = suppliers.find((s) => s.name.toLowerCase() === defaultSup.toLowerCase());
 
     setBillSupplierName(defaultSup);
@@ -673,13 +673,12 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
             className="flex-1 md:flex-none px-3.5 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition flex items-center justify-center space-x-1.5 shadow-xs cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Add Supplier Bill</span>
+            <span>Add Supplier Bill</span>
           </button>
           <button
             onClick={() => handleOpenPaymentModal()}
             className="flex-1 md:flex-none px-3.5 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition flex items-center justify-center space-x-1.5 shadow-md shadow-rose-600/20 cursor-pointer"
           >
-            <DollarSign className="w-4 h-4" />
             <span>Record Payment (Pay Dues)</span>
           </button>
         </div>
@@ -1172,7 +1171,7 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Sunrise Textile Mills"
+                  placeholder="Supplier name"
                   value={supplierName}
                   onChange={(e) => setSupplierName(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -1184,7 +1183,7 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
                   <label className="block text-xs font-bold text-slate-700 mb-1">Company / Branch</label>
                   <input
                     type="text"
-                    placeholder="e.g. Weaving Processing Unit"
+                    placeholder="Supplier or mill name"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -1212,7 +1211,7 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
                   <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
                   <input
                     type="text"
-                    placeholder="+92 300 1234567"
+                    placeholder="Phone number"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -1222,7 +1221,7 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
                   <label className="block text-xs font-bold text-slate-700 mb-1">City</label>
                   <input
                     type="text"
-                    placeholder="Faisalabad / Lahore"
+                    placeholder="City"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -1324,7 +1323,7 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
                   <label className="block text-xs font-bold text-slate-700 mb-1">Supplier Address</label>
                   <input
                     type="text"
-                    placeholder="e.g. Mill Area, Faisalabad"
+                    placeholder="Address"
                     value={billSupplierAddress}
                     onChange={(e) => setBillSupplierAddress(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -1355,7 +1354,7 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. LOT-2026-105"
+                    placeholder="Lot or bill number"
                     value={billNumber}
                     onChange={(e) => setBillNumber(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -1387,7 +1386,7 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 5,000 Single Quilt Zipper Bags & 2,000 Double Bags"
+                  placeholder="Bill item description"
                   value={billItemDesc}
                   onChange={(e) => setBillItemDesc(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -1474,7 +1473,7 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
                 <label className="block text-xs font-bold text-slate-700 mb-1">Payment Notes / Voucher Ref</label>
                 <input
                   type="text"
-                  placeholder="e.g. Paid via Bank Transfer on unloading"
+                  placeholder="Payment notes"
                   value={billNotes}
                   onChange={(e) => setBillNotes(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -1558,7 +1557,7 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
                   <label className="block text-xs font-bold text-slate-700 mb-1">Supplier Address</label>
                   <input
                     type="text"
-                    placeholder="e.g. Factory Area / Market, Faisalabad"
+                    placeholder="Supplier address"
                     value={paymentSupplierAddress}
                     onChange={(e) => setPaymentSupplierAddress(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -1637,7 +1636,7 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
                   <label className="block text-xs font-bold text-slate-700 mb-1">Reference / Cheque #</label>
                   <input
                     type="text"
-                    placeholder="e.g. CHK-9901 or FT-4412"
+                    placeholder="Reference number"
                     value={paymentRef}
                     onChange={(e) => setPaymentRef(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -1649,7 +1648,7 @@ export const SupplierPayablesView: React.FC<SupplierPayablesViewProps> = ({
                 <label className="block text-xs font-bold text-slate-700 mb-1">Payment Notes / Description</label>
                 <input
                   type="text"
-                  placeholder="e.g. Paid in full via Habib Bank Transfer"
+                  placeholder="Payment notes"
                   value={paymentNotes}
                   onChange={(e) => setPaymentNotes(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"

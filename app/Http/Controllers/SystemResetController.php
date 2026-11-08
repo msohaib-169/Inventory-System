@@ -16,8 +16,10 @@ use App\Models\Parties;
 use App\Models\PaymentTransactions;
 use App\Models\Invoices;
 use App\Models\InvoicesItems;
-use Illuminate\Http\Request;
-use Database\Seeders\DatabaseSeeder;
+use App\Models\ProductReturn;
+use App\Models\SupplierBill;
+use App\Models\SupplierPayment;
+use App\Models\SupplierProfile;
 
 class SystemResetController extends Controller
 {
@@ -35,26 +37,14 @@ class SystemResetController extends Controller
         FinishedRecord::query()->delete();
         Parties::query()->delete();
         PaymentTransactions::query()->delete();
+        ProductReturn::query()->delete();
         InvoicesItems::query()->delete();
         Invoices::query()->delete();
-
-        WaddingStock::create([
-            'total_purchased_kg' => 0,
-            'used_kg' => 0,
-            'available_kg' => 0,
-            'single_quilt_spec_kg' => 0.8,
-            'double_quilt_spec_kg' => 1.4,
-        ]);
+        SupplierPayment::query()->delete();
+        SupplierBill::query()->delete();
+        SupplierProfile::query()->delete();
 
         return response()->json(['message' => 'System data cleared successfully']);
     }
 
-    public function resetToDefault()
-    {
-        $this->clearAll();
-        $seeder = new DatabaseSeeder();
-        $seeder->run();
-
-        return response()->json(['message' => 'System reset to default seed data successfully']);
-    }
 }

@@ -12,6 +12,7 @@ import {
   Users,
   CreditCard,
   FileText,
+  RotateCcw,
   BarChart3,
   User,
   LogOut,
@@ -55,6 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
     { id: 'parties', label: 'Parties & Customer Dues', icon: Users },
     { id: 'supplier_dues', label: 'Supplier Accounts Payable', icon: CreditCard },
     { id: 'billing', label: 'Billing & PDF Invoice', icon: FileText },
+    { id: 'returns', label: 'Product Returns', icon: RotateCcw },
     { id: 'reports', label: 'Reports & Analytics', icon: BarChart3 },
   ];
 

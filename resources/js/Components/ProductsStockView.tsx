@@ -12,7 +12,7 @@ interface ProductsStockViewProps {
   onSaveProducts: (products: FinishedProduct[]) => void;
 }
 
-import { ERPStorage, defaultProductHierarchy } from '../lib/storage';
+import { ERPStorage } from '../lib/storage';
 
 export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, currency, onSaveProducts }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,7 +31,7 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
 
   // Form state (ALL numeric inputs cleanly default to 0)
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<string>('Bedsheet');
+  const [category, setCategory] = useState<string>('');
   const [subCategory, setSubCategory] = useState<string>('');
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [customCategoryInput, setCustomCategoryInput] = useState('');
@@ -65,11 +65,7 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
     );
   };
 
-  const allKnownCategories = useMemo(() => {
-    const keys = Object.keys(hierarchy);
-    if (keys.length === 0) return Object.keys(defaultProductHierarchy);
-    return keys;
-  }, [hierarchy]);
+  const allKnownCategories = useMemo(() => Object.keys(hierarchy), [hierarchy]);
 
   const activeCategory = isCustomCategory ? customCategoryInput.trim() : category;
 
@@ -101,26 +97,25 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
     if (stockStatusFilter === 'low_stock' && !isLow) return false;
     if (stockStatusFilter === 'in_stock' && isLow) return false;
 
-    // 4. Search Query (supports design numbers like ZF 1089, product name, category, subcategory, sku)
+    // 4. Search Query (supports design numbers like ZF 1089, product name, category, and subcategory)
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       const matchName = p.name.toLowerCase().includes(q);
       const matchCat = (p.category || '').toLowerCase().includes(q);
       const matchSubCat = (p.subCategory || '').toLowerCase().includes(q);
-      const matchSku = (p.sku || '').toLowerCase().includes(q);
       const matchDesign = matchesDesignSearch(p.designNumber, searchQuery);
 
-      if (!matchName && !matchCat && !matchSubCat && !matchSku && !matchDesign) {
+      if (!matchName && !matchCat && !matchSubCat && !matchDesign) {
         return false;
       }
     }
     return true;
   });
 
-  const handleOpenAddModal = (defaultCategory: string = 'Bedsheet') => {
+  const handleOpenAddModal = (defaultCategory: string = '') => {
     setEditingProductId(null);
     setName('');
-    const targetCat = allKnownCategories.includes(defaultCategory) ? defaultCategory : (allKnownCategories[0] || 'Bedsheet');
+    const targetCat = allKnownCategories.includes(defaultCategory) ? defaultCategory : (allKnownCategories[0] || '');
     setCategory(targetCat);
     setIsCustomCategory(false);
     setCustomCategoryInput('');
@@ -425,7 +420,7 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
           <div>
             <h2 className="text-base font-bold text-slate-900">Finished Products Catalogue & Stock Directory</h2>
             <p className="text-xs text-slate-500">
-              Manage product categories (e.g. <strong>Bedsheets</strong> with 3pcs/4pcs/5pcs, <strong>Comforters</strong>, <strong>Quilts</strong>) & design numbers.
+              Manage product categories, sub-categories, and design numbers.
             </p>
           </div>
 
@@ -447,7 +442,7 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
-              placeholder="Search by Design # (e.g. ZF 1089), Name, Category..."
+              placeholder="Search design, name, or category"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -544,7 +539,6 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
                     <tr key={p.id} className="hover:bg-slate-50/80 transition">
                       <td className="py-3 px-4">
                         <div className="font-bold text-slate-900">{p.name}</div>
-                        {p.sku && <div className="text-[10px] text-slate-400 font-mono">SKU: {p.sku}</div>}
                       </td>
                       <td className="py-3 px-4">
                         <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -687,7 +681,7 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
                   type="text"
                   value={usageReason}
                   onChange={(e) => setUsageReason(e.target.value)}
-                  placeholder="e.g. Issued to stitching / warehouse transfer"
+                  placeholder="Issue purpose"
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-800"
                 />
               </div>
@@ -749,7 +743,7 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Classic Bedsheet Double Set (ZF 1089)"
+                  placeholder="Product name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -824,7 +818,7 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
                     <div className="space-y-1">
                       <input
                         type="text"
-                        placeholder="e.g. Bedsheet 3pcs, 4pcs, 5pcs"
+                        placeholder="Sub-category"
                         value={customSubCategoryInput}
                         onChange={(e) => setCustomSubCategoryInput(e.target.value)}
                         className="w-full px-3 py-2 border border-indigo-400 bg-indigo-50/50 rounded-lg text-xs font-bold text-indigo-900"
@@ -858,13 +852,13 @@ export const ProductsStockView: React.FC<ProductsStockViewProps> = ({ products, 
                   <input
                     type="text"
                     required
-                    placeholder="e.g. ZF 1089, ZF 1090"
+                    placeholder="Design numbers"
                     value={designNumber}
                     onChange={(e) => setDesignNumber(e.target.value)}
                     className="w-full px-3 py-2 border border-amber-300 bg-white rounded-lg text-xs font-bold text-amber-950 focus:ring-2 focus:ring-amber-500 focus:outline-none"
                   />
                   <p className="text-[11px] text-amber-700">
-                    Design numbers are strictly for bedsheet and comforter patterns (e.g. ZF 1089).
+                    Design numbers are for product patterns.
                   </p>
                 </div>
               )}

@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('finished_records', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
-            $table->string('sku')->nullable();
             $table->string('category')->nullable();
             $table->string('design_number')->nullable();
             $table->decimal('cost_price', 12, 2)->default(0);

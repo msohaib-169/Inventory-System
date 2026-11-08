@@ -931,14 +931,14 @@ export const BillingSystemView: React.FC<BillingSystemViewProps> = ({
                                     <div className="grid grid-cols-2 gap-2">
                                       <input
                                         type="text"
-                                        placeholder="Product / Item Name (e.g. Quilt Set)"
+                                        placeholder="Product or item name"
                                         value={item.productName || ''}
                                         onChange={(e) => handleItemFieldChange(index, 'productName', e.target.value)}
                                         className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 bg-white"
                                       />
                                       <input
                                         type="text"
-                                        placeholder="Design / Size (e.g. DS-101 / King)"
+                                        placeholder="Design or size"
                                         value={item.designNumber || ''}
                                         onChange={(e) => handleItemFieldChange(index, 'designNumber', e.target.value)}
                                         className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 bg-white"

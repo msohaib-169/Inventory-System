@@ -66,9 +66,9 @@ export const FabricLossView: React.FC<FabricLossViewProps> = ({
   >('Loss Fabric');
   const [selectedPartyId, setSelectedPartyId] = useState<string>('');
   const [customPartyName, setCustomPartyName] = useState<string>('');
-  const [lossFrontMeters, setLossFrontMeters] = useState<number>(10);
-  const [lossReverseMeters, setLossReverseMeters] = useState<number>(10);
-  const [ratePerMeter, setRatePerMeter] = useState<number>(150);
+  const [lossFrontMeters, setLossFrontMeters] = useState<number>(0);
+  const [lossReverseMeters, setLossReverseMeters] = useState<number>(0);
+  const [ratePerMeter, setRatePerMeter] = useState<number>(0);
   const [lossNotes, setLossNotes] = useState('');
   const [autoDeductLot, setAutoDeductLot] = useState<boolean>(true);
   const [generateInvoiceNow, setGenerateInvoiceNow] = useState<boolean>(false);
@@ -133,9 +133,9 @@ export const FabricLossView: React.FC<FabricLossViewProps> = ({
     setLossCategory('Loss Fabric');
     setSelectedPartyId(parties[0]?.id || '');
     setCustomPartyName('');
-    setLossFrontMeters(10);
-    setLossReverseMeters(10);
-    setRatePerMeter(150);
+    setLossFrontMeters(0);
+    setLossReverseMeters(0);
+    setRatePerMeter(0);
     setLossNotes('Loss fabric fed for party / customer');
     setAutoDeductLot(true);
     setGenerateInvoiceNow(false);
@@ -786,7 +786,7 @@ export const FabricLossView: React.FC<FabricLossViewProps> = ({
                   rows={2}
                   value={lossNotes}
                   onChange={(e) => setLossNotes(e.target.value)}
-                  placeholder="e.g. Loss fabric Front & Reverse issue for party"
+                  placeholder="Loss notes"
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs"
                 />
               </div>

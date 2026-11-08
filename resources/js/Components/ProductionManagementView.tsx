@@ -149,11 +149,11 @@ export const ProductionManagementView: React.FC<ProductionManagementViewProps> =
   if (currentProduct) {
     const pCatLower = (currentProduct.category || '').toLowerCase();
     if (pCatLower.includes('single quilt')) {
-      estimatedWaddingKg = qty * (wadding.singleQuiltSpecKg || 0.8);
+      estimatedWaddingKg = qty * (wadding.singleQuiltSpecKg ?? 0);
     } else if (pCatLower.includes('double quilt')) {
-      estimatedWaddingKg = qty * (wadding.doubleQuiltSpecKg || 1.4);
+      estimatedWaddingKg = qty * (wadding.doubleQuiltSpecKg ?? 0);
     } else if (pCatLower.includes('comforter')) {
-      estimatedWaddingKg = qty * 2.5;
+      estimatedWaddingKg = 0;
     }
   }
 
@@ -406,7 +406,7 @@ export const ProductionManagementView: React.FC<ProductionManagementViewProps> =
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
-                placeholder="Search Design # (ZF 1089), Product..."
+                placeholder="Search design or product"
                 value={productionSearch}
                 onChange={(e) => setProductionSearch(e.target.value)}
                 className="w-full pl-8 pr-8 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -545,7 +545,7 @@ export const ProductionManagementView: React.FC<ProductionManagementViewProps> =
                     type="text"
                     value={operatorName}
                     onChange={(e) => setOperatorName(e.target.value)}
-                    placeholder="e.g. Stitching Dept #1"
+                    placeholder="Department or operator"
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-800"
                   />
                 </div>
@@ -584,7 +584,7 @@ export const ProductionManagementView: React.FC<ProductionManagementViewProps> =
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Classic Bedsheet 3pcs (ZF 1089)"
+                      placeholder="Product name"
                       value={manualProductName}
                       onChange={(e) => setManualProductName(e.target.value)}
                       className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 bg-white"
@@ -597,7 +597,7 @@ export const ProductionManagementView: React.FC<ProductionManagementViewProps> =
                       <input
                         type="text"
                         required
-                        placeholder="e.g. Bedsheet, Comforter"
+                        placeholder="Category"
                         value={manualProductCategory}
                         onChange={(e) => setManualProductCategory(e.target.value)}
                         className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-medium text-slate-800 bg-white"
@@ -607,7 +607,7 @@ export const ProductionManagementView: React.FC<ProductionManagementViewProps> =
                       <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Sub-Category</label>
                       <input
                         type="text"
-                        placeholder="e.g. Bedsheet 3pcs"
+                        placeholder="Sub-category"
                         value={manualProductSubCategory}
                         onChange={(e) => setManualProductSubCategory(e.target.value)}
                         className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-medium text-slate-800 bg-white"
@@ -618,12 +618,12 @@ export const ProductionManagementView: React.FC<ProductionManagementViewProps> =
                   {isDesignRequired(manualProductCategory) && (
                     <div>
                       <label className="block text-[10px] font-bold text-amber-900 mb-0.5">
-                        Design Number * (e.g. ZF 1089)
+                        Design Number *
                       </label>
                       <input
                         type="text"
                         required
-                        placeholder="e.g. ZF 1089"
+                        placeholder="Design number"
                         value={manualDesignNumber}
                         onChange={(e) => setManualDesignNumber(e.target.value)}
                         className="w-full px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs font-bold text-amber-950 bg-white"

@@ -16,8 +16,8 @@ return new class extends Migration
             $table->decimal('total_purchased_kg', 12, 2)->default(0);
             $table->decimal('used_kg', 12, 2)->default(0);
             $table->decimal('available_kg', 12, 2)->default(0);
-            $table->decimal('single_quilt_spec_kg', 12, 2)->default(0.8);
-            $table->decimal('double_quilt_spec_kg', 12, 2)->default(1.4);
+            $table->decimal('single_quilt_spec_kg', 12, 2)->default(0);
+            $table->decimal('double_quilt_spec_kg', 12, 2)->default(0);
             $table->timestamps();
         });
     }

@@ -52,68 +52,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
 }) => {
   const currencySymbol = currency?.symbol || 'Rs.';
 
-  // Ensure default fallback list of wadding items
-  const defaultItems: WaddingItem[] = [
-    {
-      id: 'wad-1',
-      type: 'Siliconized Polyester Fiber',
-      gsm: 200,
-      supplierName: 'National Fiber Mills Ltd',
-      lotNumber: 'WAD-LOT-2026-A1',
-      ratePerKg: 350,
-      availableKg: 400,
-      totalPurchasedKg: 500,
-      usedKg: 100,
-      singleQuiltSpecKg: 0.8,
-      doubleQuiltSpecKg: 1.4,
-      gaddaSpecKg: 2.0,
-      singleQuiltFabricMeters: 2.5,
-      doubleQuiltFabricMeters: 4.2,
-      gaddaFabricMeters: 3.5,
-      fabricRatePerMeter: 120,
-      notes: 'Standard 200 GSM siliconized fiber roll for winter quilts',
-    },
-    {
-      id: 'wad-2',
-      type: 'Microfiber Soft Wadding',
-      gsm: 300,
-      supplierName: 'Al-Madina Textile Supplies',
-      lotNumber: 'WAD-LOT-2026-B2',
-      ratePerKg: 480,
-      availableKg: 250,
-      totalPurchasedKg: 300,
-      usedKg: 50,
-      singleQuiltSpecKg: 1.1,
-      doubleQuiltSpecKg: 1.8,
-      gaddaSpecKg: 2.5,
-      singleQuiltFabricMeters: 2.6,
-      doubleQuiltFabricMeters: 4.5,
-      gaddaFabricMeters: 3.8,
-      fabricRatePerMeter: 160,
-      notes: 'Ultra soft 300 GSM microfiber filling for comforter sets',
-    },
-    {
-      id: 'wad-3',
-      type: 'Thermal Bonded Roll Fiber',
-      gsm: 150,
-      supplierName: 'Sunrise Non-Woven Co.',
-      lotNumber: 'WAD-LOT-2026-C3',
-      ratePerKg: 280,
-      availableKg: 166,
-      totalPurchasedKg: 200,
-      usedKg: 34,
-      singleQuiltSpecKg: 0.6,
-      doubleQuiltSpecKg: 1.1,
-      gaddaSpecKg: 1.8,
-      singleQuiltFabricMeters: 2.4,
-      doubleQuiltFabricMeters: 4.0,
-      gaddaFabricMeters: 3.2,
-      fabricRatePerMeter: 110,
-      notes: '150 GSM lightweight thermal bonded fiber for summer blankets',
-    },
-  ];
-
-  const items: WaddingItem[] = wadding.items ?? defaultItems;
+  const items: WaddingItem[] = wadding.items ?? [];
 
   // Navigation Tab State
   const [activeTab, setActiveTab] = useState<'estimator' | 'inventory' | 'fabric_inward' | 'add'>('estimator');
@@ -132,7 +71,6 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
   const [inwardDateReceived, setInwardDateReceived] = useState(new Date().toISOString().split('T')[0]);
   const [inwardNotes, setInwardNotes] = useState('');
   const [inwardDesigns, setInwardDesigns] = useState<FabricDesign[]>([
-    { id: 'design-1', designNumber: 'DS-101', designName: 'Royal Printed Cotton', frontMeters: 450, reverseMeters: 450 },
   ]);
   const [fabricSearchQuery, setFabricSearchQuery] = useState('');
 
@@ -205,7 +143,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
 
   // Production Feed Entry Form State
   const [selectedWaddingId, setSelectedWaddingId] = useState<string>(items[0]?.id || '');
-  const [selectedFabricLot, setSelectedFabricLot] = useState<string>(lots[0]?.lotNumber || 'LOT-2026-001');
+  const [selectedFabricLot, setSelectedFabricLot] = useState<string>(lots[0]?.lotNumber || '');
   const [customFabricLot, setCustomFabricLot] = useState<string>('');
   const [singleQuiltsProduced, setSingleQuiltsProduced] = useState<number>(0);
   const [doubleQuiltsProduced, setDoubleQuiltsProduced] = useState<number>(0);
@@ -240,8 +178,8 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
     const totalUsed = newItems.reduce((sum, i) => sum + i.usedKg, 0);
 
     const firstItem = newItems[0];
-    const defaultSingleSpec = firstItem ? firstItem.singleQuiltSpecKg : 0.8;
-    const defaultDoubleSpec = firstItem ? firstItem.doubleQuiltSpecKg : 1.4;
+    const defaultSingleSpec = firstItem?.singleQuiltSpecKg ?? wadding.singleQuiltSpecKg ?? 0;
+    const defaultDoubleSpec = firstItem?.doubleQuiltSpecKg ?? wadding.doubleQuiltSpecKg ?? 0;
 
     onSaveWadding({
       ...wadding,
@@ -283,7 +221,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
     }
 
     const initialKg = Number(newInitialKg) || 0;
-    const ratePerKg = Number(newRatePerKg) || 350;
+    const ratePerKg = Number(newRatePerKg) || 0;
     const cost = newTotalCost !== undefined ? Number(newTotalCost) : initialKg * ratePerKg;
     const paid = Number(newAmountPaid) || 0;
     let status: 'Paid' | 'Partial' | 'Unpaid' = newPaymentStatus;
@@ -295,20 +233,20 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
       id: `wad-${Date.now()}`,
       type: finalType,
       gsm: Number(newGsm),
-      supplierName: newSupplierName.trim() || 'Direct Supplier',
+      supplierName: newSupplierName.trim(),
       supplierAddress: newSupplierAddress.trim() || undefined,
-      lotNumber: newLotNumber.trim() || `WAD-LOT-${Date.now().toString().slice(-4)}`,
+      lotNumber: newLotNumber.trim(),
       ratePerKg,
       availableKg: initialKg,
       totalPurchasedKg: initialKg,
       usedKg: 0,
-      singleQuiltSpecKg: Number(newSingleSpec) || 0.8,
-      doubleQuiltSpecKg: Number(newDoubleSpec) || 1.4,
-      gaddaSpecKg: Number(newGaddaSpec) || 2.0,
-      singleQuiltFabricMeters: Number(newSingleFabricMeters) || 2.5,
-      doubleQuiltFabricMeters: Number(newDoubleFabricMeters) || 4.2,
-      gaddaFabricMeters: Number(newGaddaFabricMeters) || 3.5,
-      fabricRatePerMeter: Number(newFabricRatePerMeter) || 120,
+      singleQuiltSpecKg: Number(newSingleSpec),
+      doubleQuiltSpecKg: Number(newDoubleSpec),
+      gaddaSpecKg: Number(newGaddaSpec),
+      singleQuiltFabricMeters: Number(newSingleFabricMeters),
+      doubleQuiltFabricMeters: Number(newDoubleFabricMeters),
+      gaddaFabricMeters: Number(newGaddaFabricMeters),
+      fabricRatePerMeter: Number(newFabricRatePerMeter),
       totalCost: cost,
       amountPaid: paid,
       paymentStatus: status,
@@ -357,7 +295,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
     const totalCost =
       quickPayWadding.totalCost !== undefined
         ? quickPayWadding.totalCost
-        : quickPayWadding.totalPurchasedKg * (quickPayWadding.ratePerKg || 350);
+        : quickPayWadding.totalPurchasedKg * (quickPayWadding.ratePerKg ?? 0);
     const paidVal = Number(quickPayWaddingAmount) || 0;
     let status: 'Paid' | 'Partial' | 'Unpaid' = 'Unpaid';
     if (totalCost > 0 && paidVal >= totalCost) status = 'Paid';
@@ -407,12 +345,12 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
           ...item,
           singleQuiltSpecKg: Number(modalSingleSpec) || item.singleQuiltSpecKg,
           doubleQuiltSpecKg: Number(modalDoubleSpec) || item.doubleQuiltSpecKg,
-          gaddaSpecKg: Number(modalGaddaSpec) || item.gaddaSpecKg || 2.0,
-          singleQuiltFabricMeters: Number(modalSingleFabric) || item.singleQuiltFabricMeters || 2.5,
-          doubleQuiltFabricMeters: Number(modalDoubleFabric) || item.doubleQuiltFabricMeters || 4.2,
-          gaddaFabricMeters: Number(modalGaddaFabric) || item.gaddaFabricMeters || 3.5,
-          ratePerKg: Number(modalWaddingRate) || item.ratePerKg || 350,
-          fabricRatePerMeter: Number(modalFabricRate) || item.fabricRatePerMeter || 120,
+          gaddaSpecKg: Number(modalGaddaSpec),
+          singleQuiltFabricMeters: Number(modalSingleFabric),
+          doubleQuiltFabricMeters: Number(modalDoubleFabric),
+          gaddaFabricMeters: Number(modalGaddaFabric),
+          ratePerKg: Number(modalWaddingRate),
+          fabricRatePerMeter: Number(modalFabricRate),
         };
       }
       return item;
@@ -428,12 +366,12 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
     setModalKgValue('');
     setModalSingleSpec(item.singleQuiltSpecKg.toString());
     setModalDoubleSpec(item.doubleQuiltSpecKg.toString());
-    setModalGaddaSpec((item.gaddaSpecKg || 2.0).toString());
-    setModalSingleFabric((item.singleQuiltFabricMeters || 2.5).toString());
-    setModalDoubleFabric((item.doubleQuiltFabricMeters || 4.2).toString());
-    setModalGaddaFabric((item.gaddaFabricMeters || 3.5).toString());
-    setModalWaddingRate((item.ratePerKg || 350).toString());
-    setModalFabricRate((item.fabricRatePerMeter || 120).toString());
+    setModalGaddaSpec((item.gaddaSpecKg ?? 0).toString());
+    setModalSingleFabric((item.singleQuiltFabricMeters ?? 0).toString());
+    setModalDoubleFabric((item.doubleQuiltFabricMeters ?? 0).toString());
+    setModalGaddaFabric((item.gaddaFabricMeters ?? 0).toString());
+    setModalWaddingRate((item.ratePerKg ?? 0).toString());
+    setModalFabricRate((item.fabricRatePerMeter ?? 0).toString());
     setModalReasonNotes('');
   };
 
@@ -447,12 +385,12 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
   // Fabric Inward Management Handlers
   const handleOpenAddFabricLot = () => {
     setEditingFabricLotId(null);
-    setInwardLotNumber(`LOT-2026-${Math.floor(100 + Math.random() * 900)}`);
+    setInwardLotNumber('');
     setInwardSupplierName('');
     setInwardDateReceived(new Date().toISOString().split('T')[0]);
     setInwardNotes('');
     setInwardDesigns([
-      { id: `design-${Date.now()}-1`, designNumber: 'DS-101', designName: 'Premium Printed Cotton', frontMeters: 0, reverseMeters: 0, totalMeters: 1000 }
+      { id: `design-${Date.now()}-1`, designNumber: '', designName: '', frontMeters: 0, reverseMeters: 0, totalMeters: 0 }
     ]);
     setIsFabricModalOpen(true);
   };
@@ -466,7 +404,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
     setInwardDesigns(
       lot.designs && lot.designs.length > 0
         ? lot.designs.map((d) => ({ ...d, totalMeters: getDesignTotalMeters(d) }))
-        : [{ id: `d-1`, designNumber: 'DS-101', designName: '', frontMeters: 0, reverseMeters: 0, totalMeters: 500 }]
+        : [{ id: `design-${Date.now()}-1`, designNumber: '', designName: '', frontMeters: 0, reverseMeters: 0, totalMeters: 0 }]
     );
     setIsFabricModalOpen(true);
   };
@@ -476,11 +414,11 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
       ...prev,
       {
         id: `design-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
-        designNumber: `DS-${Math.floor(100 + Math.random() * 900)}`,
+        designNumber: '',
         designName: '',
         frontMeters: 0,
         reverseMeters: 0,
-        totalMeters: 500,
+        totalMeters: 0,
       },
     ]);
   };
@@ -549,6 +487,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
   }, 0);
 
   const totalFabricLotsCount = lots.length;
+  const doubleQuiltMetersPerPiece = items.find((item) => item.doubleQuiltFabricMeters > 0)?.doubleQuiltFabricMeters ?? 0;
   const totalFabricDesignsCount = lots.reduce((acc, lot) => acc + (lot.designs?.length || 0), 0);
 
   const filteredFabricLots = lots.filter((lot) => {
@@ -576,8 +515,8 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
       totalPurchasedKg: 0,
       usedKg: 0,
       availableKg: 0,
-      singleQuiltSpecKg: 0.8,
-      doubleQuiltSpecKg: 1.4,
+      singleQuiltSpecKg: 0,
+      doubleQuiltSpecKg: 0,
       items: [],
     });
     setIsConfirmClearAllOpen(false);
@@ -585,8 +524,8 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
 
   // Estimator Calculations
   const selectedEstimatorItem = items.find((i) => i.id === estimatorSelectedItemId);
-  const estSingleSpec = selectedEstimatorItem ? selectedEstimatorItem.singleQuiltSpecKg : wadding.singleQuiltSpecKg || 0.8;
-  const estDoubleSpec = selectedEstimatorItem ? selectedEstimatorItem.doubleQuiltSpecKg : wadding.doubleQuiltSpecKg || 1.4;
+  const estSingleSpec = selectedEstimatorItem?.singleQuiltSpecKg ?? wadding.singleQuiltSpecKg ?? 0;
+  const estDoubleSpec = selectedEstimatorItem?.doubleQuiltSpecKg ?? wadding.doubleQuiltSpecKg ?? 0;
   const estAvailableKg = selectedEstimatorItem ? selectedEstimatorItem.availableKg : wadding.availableKg;
 
   const reqSingleKg = targetSingleQty * estSingleSpec;
@@ -595,8 +534,8 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
 
   const singleAllocatedKg = (fixedWaddingKgInput * singleAllocationPercent) / 100;
   const doubleAllocatedKg = fixedWaddingKgInput - singleAllocatedKg;
-  const maxSingleQuiltsPossible = Math.floor(singleAllocatedKg / (estSingleSpec || 0.8));
-  const maxDoubleQuiltsPossible = Math.floor(doubleAllocatedKg / (estDoubleSpec || 1.4));
+  const maxSingleQuiltsPossible = estSingleSpec > 0 ? Math.floor(singleAllocatedKg / estSingleSpec) : 0;
+  const maxDoubleQuiltsPossible = estDoubleSpec > 0 ? Math.floor(doubleAllocatedKg / estDoubleSpec) : 0;
 
   const gsmPresets = [100, 120, 150, 180, 200, 250, 300, 350, 400];
 
@@ -759,7 +698,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
             {(() => {
               const overallWaddingKg = items.reduce((acc, i) => acc + i.availableKg, 0);
               const overallWaddingCost = items.reduce(
-                (acc, i) => acc + (i.totalCost !== undefined ? i.totalCost : i.totalPurchasedKg * (i.ratePerKg || 350)),
+                (acc, i) => acc + (i.totalCost !== undefined ? i.totalCost : i.totalPurchasedKg * (i.ratePerKg ?? 0)),
                 0
               );
               const overallWaddingPaid = items.reduce((acc, i) => acc + (i.amountPaid || 0), 0);
@@ -871,7 +810,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                       const itemTotalCost =
                         item.totalCost !== undefined
                           ? item.totalCost
-                          : item.totalPurchasedKg * (item.ratePerKg || 350);
+                          : item.totalPurchasedKg * (item.ratePerKg ?? 0);
                       const itemPaid = Number(item.amountPaid || 0);
                       const itemBalance = Math.max(0, itemTotalCost - itemPaid);
                       const itemStatus =
@@ -943,15 +882,15 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                             <div className="space-y-0.5 text-[11px] text-slate-700 font-medium">
                               <div>
                                 <span className="text-slate-400">Single:</span>{' '}
-                                <strong className="text-slate-900">{item.singleQuiltSpecKg} kg</strong> | {item.singleQuiltFabricMeters || 2.5}m
+                                <strong className="text-slate-900">{item.singleQuiltSpecKg} kg</strong> | {item.singleQuiltFabricMeters ?? 0}m
                               </div>
                               <div>
                                 <span className="text-slate-400">Double:</span>{' '}
-                                <strong className="text-slate-900">{item.doubleQuiltSpecKg} kg</strong> | {item.doubleQuiltFabricMeters || 4.2}m
+                                <strong className="text-slate-900">{item.doubleQuiltSpecKg} kg</strong> | {item.doubleQuiltFabricMeters ?? 0}m
                               </div>
                               <div>
                                 <span className="text-emerald-700 font-semibold">Gadda:</span>{' '}
-                                <strong className="text-emerald-950">{item.gaddaSpecKg || 2.0} kg</strong> | {item.gaddaFabricMeters || 3.5}m
+                                <strong className="text-emerald-950">{item.gaddaSpecKg ?? 0} kg</strong> | {item.gaddaFabricMeters ?? 0}m
                               </div>
                             </div>
                           </td>
@@ -961,7 +900,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                               <div>
                                 <span className="text-slate-400">Rate:</span>{' '}
                                 <strong className="text-indigo-700">
-                                  {currencySymbol} {item.ratePerKg || 350}/kg
+                                  {currencySymbol} {item.ratePerKg ?? 0}/kg
                                 </strong>
                               </div>
                               <div>
@@ -1098,9 +1037,9 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
               <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
                 <span className="text-[11px] font-bold text-slate-500 block uppercase">Est. Quilt Capacity</span>
                 <div className="text-2xl font-black text-emerald-700 mt-1">
-                  ~{Math.floor(totalFabricInwardMeters / 4.2).toLocaleString()} <span className="text-xs font-bold text-emerald-600">Double Quilts</span>
+                  ~{(doubleQuiltMetersPerPiece > 0 ? Math.floor(totalFabricInwardMeters / doubleQuiltMetersPerPiece) : 0).toLocaleString()} <span className="text-xs font-bold text-emerald-600">Double Quilts</span>
                 </div>
-                <span className="text-[11px] text-slate-500">Based on 4.2m/pc avg spec</span>
+                <span className="text-[11px] text-slate-500">Saved spec: {doubleQuiltMetersPerPiece}m per piece</span>
               </div>
             </div>
 
@@ -1226,7 +1165,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Siliconized Polyester Fiber, Microfiber, etc."
+                    placeholder="Wadding type"
                     value={newTypeName}
                     onChange={(e) => setNewTypeName(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-indigo-500"
@@ -1243,7 +1182,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                       required
                       min="50"
                       max="1000"
-                      placeholder="e.g. 200"
+                      placeholder="GSM"
                       value={newGsm || ''}
                       onChange={(e) => setNewGsm(Number(e.target.value))}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-extrabold text-indigo-700 focus:ring-2 focus:ring-indigo-500"
@@ -1277,7 +1216,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. National Fiber Mills Ltd"
+                    placeholder="Supplier name"
                     value={newSupplierName}
                     onChange={(e) => setNewSupplierName(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900"
@@ -1290,7 +1229,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Mills Road, Faisalabad"
+                    placeholder="Supplier address"
                     value={newSupplierAddress}
                     onChange={(e) => setNewSupplierAddress(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900"
@@ -1303,7 +1242,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. WAD-LOT-2026-A1"
+                    placeholder="Lot number"
                     value={newLotNumber}
                     onChange={(e) => setNewLotNumber(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono text-slate-900"
@@ -1321,7 +1260,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                     type="number"
                     required
                     min="0"
-                    placeholder="e.g. 500"
+                    placeholder="Quantity"
                     value={newInitialKg || ''}
                     onChange={(e) => {
                       const kg = Number(e.target.value);
@@ -1340,7 +1279,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                     type="number"
                     required
                     min="0"
-                    placeholder="e.g. 350"
+                    placeholder="Rate per kg"
                     value={newRatePerKg || ''}
                     onChange={(e) => {
                       const rate = Number(e.target.value);
@@ -1361,8 +1300,8 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                   </h4>
                   <span
                     className={`px-2 py-0.5 text-[10px] font-extrabold rounded-full uppercase tracking-wider ${
-                      (newTotalCost !== undefined ? newTotalCost : (newInitialKg || 0) * (newRatePerKg || 350)) > 0 &&
-                      newAmountPaid >= (newTotalCost !== undefined ? newTotalCost : (newInitialKg || 0) * (newRatePerKg || 350))
+                      (newTotalCost !== undefined ? newTotalCost : (newInitialKg || 0) * (newRatePerKg || 0)) > 0 &&
+                      newAmountPaid >= (newTotalCost !== undefined ? newTotalCost : (newInitialKg || 0) * (newRatePerKg || 0))
                         ? 'bg-emerald-200 text-emerald-900'
                         : newAmountPaid > 0
                         ? 'bg-amber-200 text-amber-900'
@@ -1370,8 +1309,8 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                     }`}
                   >
                     Status:{' '}
-                    {(newTotalCost !== undefined ? newTotalCost : (newInitialKg || 0) * (newRatePerKg || 350)) > 0 &&
-                    newAmountPaid >= (newTotalCost !== undefined ? newTotalCost : (newInitialKg || 0) * (newRatePerKg || 350))
+                    {(newTotalCost !== undefined ? newTotalCost : (newInitialKg || 0) * (newRatePerKg || 0)) > 0 &&
+                    newAmountPaid >= (newTotalCost !== undefined ? newTotalCost : (newInitialKg || 0) * (newRatePerKg || 0))
                       ? 'Paid'
                       : newAmountPaid > 0
                       ? 'Partial'
@@ -1388,7 +1327,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                       type="number"
                       min="0"
                       placeholder="Auto computed"
-                      value={newTotalCost !== undefined ? newTotalCost : (newInitialKg || 0) * (newRatePerKg || 350)}
+                      value={newTotalCost !== undefined ? newTotalCost : (newInitialKg || 0) * (newRatePerKg || 0)}
                       onChange={(e) => setNewTotalCost(e.target.value ? Number(e.target.value) : undefined)}
                       className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-900"
                     />
@@ -1401,7 +1340,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                     <input
                       type="number"
                       min="0"
-                      placeholder="e.g. 25000"
+                      placeholder="Amount paid"
                       value={newAmountPaid || ''}
                       onChange={(e) => setNewAmountPaid(Number(e.target.value))}
                       className="w-full px-2.5 py-1.5 bg-emerald-50 border border-emerald-400 rounded-lg text-xs font-black text-emerald-950"
@@ -1416,7 +1355,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                       Rs.{' '}
                       {Math.max(
                         0,
-                        (newTotalCost !== undefined ? newTotalCost : (newInitialKg || 0) * (newRatePerKg || 350)) -
+                        (newTotalCost !== undefined ? newTotalCost : (newInitialKg || 0) * (newRatePerKg || 0)) -
                           newAmountPaid
                       ).toLocaleString()}
                     </div>
@@ -1429,7 +1368,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Paid cash 20k on arrival, rest payable on bill submission..."
+                    placeholder="Payment notes"
                     value={newPaymentNotes}
                     onChange={(e) => setNewPaymentNotes(e.target.value)}
                     className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
@@ -1549,7 +1488,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Premium siliconized 1st quality roll supplier"
+                  placeholder="Supplier notes"
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-800"
@@ -2213,7 +2152,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                       required
                       min="0.1"
                       step="0.1"
-                      placeholder="e.g. 50"
+                      placeholder="Quantity"
                       value={modalKgValue}
                       onChange={(e) => setModalKgValue(e.target.value)}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-extrabold text-indigo-900"
@@ -2389,7 +2328,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                     required
                     value={inwardLotNumber}
                     onChange={(e) => setInwardLotNumber(e.target.value)}
-                    placeholder="e.g. FAB-LOT-2026-X1"
+                    placeholder="Fabric lot number"
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900"
                   />
                 </div>
@@ -2401,7 +2340,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                     required
                     value={inwardSupplierName}
                     onChange={(e) => setInwardSupplierName(e.target.value)}
-                    placeholder="e.g. Sunrise Weaving Mills"
+                    placeholder="Supplier name"
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900"
                   />
                 </div>
@@ -2441,7 +2380,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                         <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Design / Code</label>
                         <input
                           type="text"
-                          placeholder="Code (DS-101)"
+                          placeholder="Design code"
                           value={design.designNumber}
                           onChange={(e) => handleDesignChange(index, 'designNumber', e.target.value)}
                           className="w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono"
@@ -2451,7 +2390,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                         <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Design Name / Quality</label>
                         <input
                           type="text"
-                          placeholder="Name (e.g. Premium Cotton)"
+                          placeholder="Design name"
                           value={design.designName}
                           onChange={(e) => handleDesignChange(index, 'designName', e.target.value)}
                           className="w-full px-2 py-1 border border-slate-300 rounded text-xs font-semibold"
@@ -2488,7 +2427,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Notes / Quality Remarks</label>
                 <input
                   type="text"
-                  placeholder="e.g. 100% Cotton 300 Thread Count, Grade A Quality"
+                  placeholder="Notes"
                   value={inwardNotes}
                   onChange={(e) => setInwardNotes(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs"
@@ -2539,7 +2478,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Supplier:</span>
-                  <span className="font-semibold text-slate-800">{quickPayWadding.supplierName || 'Direct Supplier'}</span>
+                  <span className="font-semibold text-slate-800">{quickPayWadding.supplierName}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Total Purchase Cost:</span>
@@ -2548,7 +2487,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                     {(
                       quickPayWadding.totalCost !== undefined
                         ? quickPayWadding.totalCost
-                        : quickPayWadding.totalPurchasedKg * (quickPayWadding.ratePerKg || 350)
+                        : quickPayWadding.totalPurchasedKg * (quickPayWadding.ratePerKg ?? 0)
                     ).toLocaleString()}
                   </span>
                 </div>
@@ -2572,7 +2511,7 @@ export const WaddingCalculatorView: React.FC<WaddingCalculatorViewProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Note / Bank Ref</label>
                 <input
                   type="text"
-                  placeholder="e.g. Cheque #891 / Online Transfer"
+                  placeholder="Payment reference"
                   value={quickPayWaddingNotes}
                   onChange={(e) => setQuickPayWaddingNotes(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs"

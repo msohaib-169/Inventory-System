@@ -11,6 +11,7 @@ use App\Http\Controllers\FinishedRecordController;
 use App\Http\Controllers\PartiesController;
 use App\Http\Controllers\PaymentTransactionsController;
 use App\Http\Controllers\InvoicesController;
+use App\Http\Controllers\ProductReturnController;
 use App\Http\Controllers\SuppliersController;
 use App\Http\Controllers\SystemResetController;
 
@@ -57,11 +58,14 @@ Route::prefix('erp')->group(function () {
     Route::post('/invoices/sync', [InvoicesController::class, 'sync']);
     Route::put('/invoices/{invoice}', [InvoicesController::class, 'update']);
 
+    // Product returns
+    Route::get('/returns', [ProductReturnController::class, 'index']);
+    Route::post('/returns', [ProductReturnController::class, 'store']);
+
     // Suppliers (Accounts Payable)
     Route::get('/suppliers', [SuppliersController::class, 'index']);
     Route::post('/suppliers/sync', [SuppliersController::class, 'sync']);
 
     // System Reset
     Route::post('/reset/clear', [SystemResetController::class, 'clearAll']);
-    Route::post('/reset/default', [SystemResetController::class, 'resetToDefault']);
 });

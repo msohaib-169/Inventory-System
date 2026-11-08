@@ -14,6 +14,7 @@ import {
   Party,
   PaymentTransaction,
   Invoice,
+  ProductReturn,
   SupplierProfile,
   SupplierBill,
   SupplierPayment,
@@ -38,31 +39,41 @@ import { PartiesLedgerView } from './Components/PartiesLedgerView';
 import { SupplierPayablesView } from './Components/SupplierPayablesView';
 import { BillingSystemView } from './Components/BillingSystemView';
 import { ReportsView } from './Components/ReportsView';
+import { ProductReturnsView } from './Components/ProductReturnsView';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyOption>(CURRENCIES[0]);
 
   // ERP Persistent Data State
-  const [lots, setLots] = useState<FabricLot[]>(() => ERPStorage.getLots());
-  const [fabricLosses, setFabricLosses] = useState<FabricLossRecord[]>(() => ERPStorage.getFabricLosses());
-  const [wadding, setWadding] = useState<WaddingStock>(() => ERPStorage.getWadding());
-  const [rawMaterials, setRawMaterials] = useState<RawMaterialStockItem[]>(() => ERPStorage.getRawMaterials());
-  const [cuttingRecords, setCuttingRecords] = useState<CuttingRecord[]>(() => ERPStorage.getCuttingRecords());
-  const [cutPiecesStock, setCutPiecesStock] = useState<CutPieceStockItem[]>(() => ERPStorage.getCutPiecesStock());
-  const [productionRecords, setProductionRecords] = useState<ProductionRecord[]>(() => ERPStorage.getProductionRecords());
-  const [products, setProducts] = useState<FinishedProduct[]>(() => ERPStorage.getProducts());
-  const [parties, setParties] = useState<Party[]>(() => ERPStorage.getParties());
-  const [payments, setPayments] = useState<PaymentTransaction[]>(() => ERPStorage.getPayments());
-  const [invoices, setInvoices] = useState<Invoice[]>(() => ERPStorage.getInvoices());
-  const [suppliers, setSuppliers] = useState<SupplierProfile[]>(() => ERPStorage.getSuppliers());
-  const [supplierBills, setSupplierBills] = useState<SupplierBill[]>(() => ERPStorage.getSupplierBills());
-  const [supplierPayments, setSupplierPayments] = useState<SupplierPayment[]>(() => ERPStorage.getSupplierPayments());
+  const [lots, setLots] = useState<FabricLot[]>([]);
+  const [fabricLosses, setFabricLosses] = useState<FabricLossRecord[]>([]);
+  const [wadding, setWadding] = useState<WaddingStock>({
+    totalPurchasedKg: 0,
+    usedKg: 0,
+    availableKg: 0,
+    singleQuiltSpecKg: 0,
+    doubleQuiltSpecKg: 0,
+    items: [],
+  });
+  const [rawMaterials, setRawMaterials] = useState<RawMaterialStockItem[]>([]);
+  const [cuttingRecords, setCuttingRecords] = useState<CuttingRecord[]>([]);
+  const [cutPiecesStock, setCutPiecesStock] = useState<CutPieceStockItem[]>([]);
+  const [productionRecords, setProductionRecords] = useState<ProductionRecord[]>([]);
+  const [products, setProducts] = useState<FinishedProduct[]>([]);
+  const [parties, setParties] = useState<Party[]>([]);
+  const [payments, setPayments] = useState<PaymentTransaction[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [productReturns, setProductReturns] = useState<ProductReturn[]>([]);
+  const [suppliers, setSuppliers] = useState<SupplierProfile[]>([]);
+  const [supplierBills, setSupplierBills] = useState<SupplierBill[]>([]);
+  const [supplierPayments, setSupplierPayments] = useState<SupplierPayment[]>([]);
 
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
-  // Initial mount: load data from backend database API if available, fallback to ERPStorage
+  // Business records are loaded from the database API; remove legacy browser-cached records.
   useEffect(() => {
+    ERPStorage.clearAllData();
     Promise.all([
       ERPAPI.fetchLots().catch(() => null),
       ERPAPI.fetchFabricLosses().catch(() => null),
@@ -75,68 +86,33 @@ export default function App() {
       ERPAPI.fetchParties().catch(() => null),
       ERPAPI.fetchPayments().catch(() => null),
       ERPAPI.fetchInvoices().catch(() => null),
+      ERPAPI.fetchReturns().catch(() => null),
       ERPAPI.fetchSuppliers().catch(() => null),
-    ]).then(([apiLots, apiLosses, apiWadding, apiRaw, apiCutting, apiCutPieces, apiProd, apiProducts, apiParties, apiPayments, apiInvoices, apiSuppliers]) => {
-      let currentLots = lots;
-      let currentWadding = wadding;
-      let currentRaw = rawMaterials;
-      let currentSuppliers = suppliers;
-      let currentBills = supplierBills;
-      let currentPayments = supplierPayments;
-
-      if (apiLots && apiLots.length) { currentLots = apiLots; setLots(apiLots); ERPStorage.saveLots(apiLots); }
-      if (apiLosses && apiLosses.length) { setFabricLosses(apiLosses); ERPStorage.saveFabricLosses(apiLosses); }
-      if (apiWadding && apiWadding.items) { currentWadding = apiWadding; setWadding(apiWadding); ERPStorage.saveWadding(apiWadding); }
-      if (apiRaw && apiRaw.length) { currentRaw = apiRaw; setRawMaterials(apiRaw); ERPStorage.saveRawMaterials(apiRaw); }
-      if (apiCutting && apiCutting.length) { setCuttingRecords(apiCutting); ERPStorage.saveCuttingRecords(apiCutting); }
-      if (apiCutPieces && apiCutPieces.length) { setCutPiecesStock(apiCutPieces); ERPStorage.saveCutPiecesStock(apiCutPieces); }
-      if (apiProd && apiProd.length) { setProductionRecords(apiProd); ERPStorage.saveProductionRecords(apiProd); }
-      if (apiProducts && apiProducts.length) { setProducts(apiProducts); ERPStorage.saveProducts(apiProducts); }
-      if (apiParties && apiParties.length) { setParties(apiParties); ERPStorage.saveParties(apiParties); }
-      if (apiPayments && apiPayments.length) { setPayments(apiPayments); ERPStorage.savePayments(apiPayments); }
-      if (apiInvoices && apiInvoices.length) { setInvoices(apiInvoices); ERPStorage.saveInvoices(apiInvoices); }
-      if (apiSuppliers) {
-        if (apiSuppliers.suppliers && apiSuppliers.suppliers.length) { currentSuppliers = apiSuppliers.suppliers; setSuppliers(apiSuppliers.suppliers); ERPStorage.saveSuppliers(apiSuppliers.suppliers); }
-        if (apiSuppliers.bills && apiSuppliers.bills.length) { currentBills = apiSuppliers.bills; setSupplierBills(apiSuppliers.bills); ERPStorage.saveSupplierBills(apiSuppliers.bills); }
-        if (apiSuppliers.payments && apiSuppliers.payments.length) { currentPayments = apiSuppliers.payments; setSupplierPayments(apiSuppliers.payments); ERPStorage.saveSupplierPayments(apiSuppliers.payments); }
+    ]).then(([apiLots, apiLosses, apiWadding, apiRaw, apiCutting, apiCutPieces, apiProd, apiProducts, apiParties, apiPayments, apiInvoices, apiReturns, apiSuppliers]) => {
+      if (apiLots !== null) setLots(apiLots);
+      if (apiLosses !== null) setFabricLosses(apiLosses);
+      if (apiWadding !== null && apiWadding?.items) setWadding(apiWadding);
+      if (apiRaw !== null) setRawMaterials(apiRaw);
+      if (apiCutting !== null) setCuttingRecords(apiCutting);
+      if (apiCutPieces !== null) setCutPiecesStock(apiCutPieces);
+      if (apiProd !== null) setProductionRecords(apiProd);
+      if (apiProducts !== null) setProducts(apiProducts);
+      if (apiParties !== null) setParties(apiParties);
+      if (apiPayments !== null) setPayments(apiPayments);
+      if (apiInvoices !== null) setInvoices(apiInvoices);
+      if (apiReturns !== null) setProductReturns(apiReturns);
+      if (apiSuppliers !== null) {
+        setSuppliers(apiSuppliers.suppliers || []);
+        setSupplierBills(apiSuppliers.bills || []);
+        setSupplierPayments(apiSuppliers.payments || []);
       }
-
-      const { syncedSuppliers, syncedBills, syncedPayments } = syncSupplierLedgers(
-        currentLots,
-        currentWadding,
-        currentRaw,
-        currentSuppliers,
-        currentBills,
-        currentPayments
-      );
-      setSuppliers(syncedSuppliers);
-      ERPStorage.saveSuppliers(syncedSuppliers);
-      setSupplierBills(syncedBills);
-      ERPStorage.saveSupplierBills(syncedBills);
-      setSupplierPayments(syncedPayments);
-      ERPStorage.saveSupplierPayments(syncedPayments);
     });
 
-    const { syncedSuppliers, syncedBills, syncedPayments } = syncSupplierLedgers(
-      lots,
-      wadding,
-      rawMaterials,
-      suppliers,
-      supplierBills,
-      supplierPayments
-    );
-    setSuppliers(syncedSuppliers);
-    ERPStorage.saveSuppliers(syncedSuppliers);
-    setSupplierBills(syncedBills);
-    ERPStorage.saveSupplierBills(syncedBills);
-    setSupplierPayments(syncedPayments);
-    ERPStorage.saveSupplierPayments(syncedPayments);
   }, []); // Run once on mount
 
   // Save State Wrappers with Auto-Sync to Backend & Supplier Accounts Payable Dues
   const handleSaveLots = (updatedLots: FabricLot[]) => {
     setLots(updatedLots);
-    ERPStorage.saveLots(updatedLots);
     ERPAPI.saveLots(updatedLots).catch(() => { });
 
     // Automatically sync Fabric Lots into Supplier Accounts Payable Dues
@@ -149,23 +125,18 @@ export default function App() {
       supplierPayments
     );
     setSuppliers(syncedSuppliers);
-    ERPStorage.saveSuppliers(syncedSuppliers);
     setSupplierBills(syncedBills);
-    ERPStorage.saveSupplierBills(syncedBills);
     setSupplierPayments(syncedPayments);
-    ERPStorage.saveSupplierPayments(syncedPayments);
     ERPAPI.saveSuppliers(syncedSuppliers, syncedBills, syncedPayments).catch(() => { });
   };
 
   const handleSaveFabricLosses = (updatedLosses: FabricLossRecord[]) => {
     setFabricLosses(updatedLosses);
-    ERPStorage.saveFabricLosses(updatedLosses);
     ERPAPI.saveFabricLosses(updatedLosses).catch(() => { });
   };
 
   const handleSaveWadding = (updatedWadding: WaddingStock) => {
     setWadding(updatedWadding);
-    ERPStorage.saveWadding(updatedWadding);
     ERPAPI.saveWadding(updatedWadding).catch(() => { });
 
     // Automatically sync Wadding Stock into Supplier Accounts Payable Dues
@@ -178,17 +149,13 @@ export default function App() {
       supplierPayments
     );
     setSuppliers(syncedSuppliers);
-    ERPStorage.saveSuppliers(syncedSuppliers);
     setSupplierBills(syncedBills);
-    ERPStorage.saveSupplierBills(syncedBills);
     setSupplierPayments(syncedPayments);
-    ERPStorage.saveSupplierPayments(syncedPayments);
     ERPAPI.saveSuppliers(syncedSuppliers, syncedBills, syncedPayments).catch(() => { });
   };
 
   const handleSaveRawMaterials = (updatedRawMaterials: RawMaterialStockItem[]) => {
     setRawMaterials(updatedRawMaterials);
-    ERPStorage.saveRawMaterials(updatedRawMaterials);
     ERPAPI.saveRawMaterials(updatedRawMaterials).catch(() => { });
 
     // Automatically sync Packaging / Raw Materials into Supplier Accounts Payable Dues
@@ -201,11 +168,8 @@ export default function App() {
       supplierPayments
     );
     setSuppliers(syncedSuppliers);
-    ERPStorage.saveSuppliers(syncedSuppliers);
     setSupplierBills(syncedBills);
-    ERPStorage.saveSupplierBills(syncedBills);
     setSupplierPayments(syncedPayments);
-    ERPStorage.saveSupplierPayments(syncedPayments);
     ERPAPI.saveSuppliers(syncedSuppliers, syncedBills, syncedPayments).catch(() => { });
   };
 
@@ -216,20 +180,16 @@ export default function App() {
     updatedWadding?: WaddingStock
   ) => {
     setLots(updatedLots);
-    ERPStorage.saveLots(updatedLots);
     ERPAPI.saveLots(updatedLots).catch(() => { });
 
     setCuttingRecords(newRecords);
-    ERPStorage.saveCuttingRecords(newRecords);
 
     setCutPiecesStock(updatedCutPieces);
-    ERPStorage.saveCutPiecesStock(updatedCutPieces);
 
     ERPAPI.saveCuttingData(newRecords, updatedCutPieces).catch(() => { });
 
     if (updatedWadding) {
       setWadding(updatedWadding);
-      ERPStorage.saveWadding(updatedWadding);
       ERPAPI.saveWadding(updatedWadding).catch(() => { });
     }
   };
@@ -242,28 +202,22 @@ export default function App() {
     newRecords: ProductionRecord[]
   ) => {
     setProducts(updatedProducts);
-    ERPStorage.saveProducts(updatedProducts);
     ERPAPI.saveProducts(updatedProducts).catch(() => { });
 
     setWadding(updatedWadding);
-    ERPStorage.saveWadding(updatedWadding);
     ERPAPI.saveWadding(updatedWadding).catch(() => { });
 
     setRawMaterials(updatedRawMaterials);
-    ERPStorage.saveRawMaterials(updatedRawMaterials);
     ERPAPI.saveRawMaterials(updatedRawMaterials).catch(() => { });
 
     setCutPiecesStock(updatedCutPieces);
-    ERPStorage.saveCutPiecesStock(updatedCutPieces);
 
     setProductionRecords(newRecords);
-    ERPStorage.saveProductionRecords(newRecords);
     ERPAPI.saveProductionRecords(newRecords).catch(() => { });
   };
 
   const handleSaveProducts = (updatedProducts: FinishedProduct[]) => {
     setProducts(updatedProducts);
-    ERPStorage.saveProducts(updatedProducts);
     ERPAPI.saveProducts(updatedProducts).catch(() => { });
   };
 
@@ -273,16 +227,13 @@ export default function App() {
     updatedInvoices?: Invoice[]
   ) => {
     setParties(updatedParties);
-    ERPStorage.saveParties(updatedParties);
     ERPAPI.saveParties(updatedParties).catch(() => { });
 
     setPayments(updatedPayments);
-    ERPStorage.savePayments(updatedPayments);
     ERPAPI.savePayments(updatedPayments).catch(() => { });
 
     if (updatedInvoices) {
       setInvoices(updatedInvoices);
-      ERPStorage.saveInvoices(updatedInvoices);
       ERPAPI.saveInvoices(updatedInvoices).catch(() => { });
     }
   };
@@ -296,29 +247,23 @@ export default function App() {
     updatedRawMaterials?: RawMaterialStockItem[]
   ) => {
     setSuppliers(updatedSuppliers);
-    ERPStorage.saveSuppliers(updatedSuppliers);
 
     setSupplierBills(updatedBills);
-    ERPStorage.saveSupplierBills(updatedBills);
 
     setSupplierPayments(updatedPayments);
-    ERPStorage.saveSupplierPayments(updatedPayments);
 
     ERPAPI.saveSuppliers(updatedSuppliers, updatedBills, updatedPayments).catch(() => { });
 
     if (updatedLots) {
       setLots(updatedLots);
-      ERPStorage.saveLots(updatedLots);
       ERPAPI.saveLots(updatedLots).catch(() => { });
     }
     if (updatedWadding) {
       setWadding(updatedWadding);
-      ERPStorage.saveWadding(updatedWadding);
       ERPAPI.saveWadding(updatedWadding).catch(() => { });
     }
     if (updatedRawMaterials) {
       setRawMaterials(updatedRawMaterials);
-      ERPStorage.saveRawMaterials(updatedRawMaterials);
       ERPAPI.saveRawMaterials(updatedRawMaterials).catch(() => { });
     }
   };
@@ -330,22 +275,28 @@ export default function App() {
     updatedPayments?: PaymentTransaction[]
   ) => {
     setInvoices(updatedInvoices);
-    ERPStorage.saveInvoices(updatedInvoices);
     ERPAPI.saveInvoices(updatedInvoices).catch(() => { });
 
     setProducts(updatedProducts);
-    ERPStorage.saveProducts(updatedProducts);
     ERPAPI.saveProducts(updatedProducts).catch(() => { });
 
     setParties(updatedParties);
-    ERPStorage.saveParties(updatedParties);
     ERPAPI.saveParties(updatedParties).catch(() => { });
 
     if (updatedPayments) {
       setPayments(updatedPayments);
-      ERPStorage.savePayments(updatedPayments);
       ERPAPI.savePayments(updatedPayments).catch(() => { });
     }
+  };
+
+  const handleCreateProductReturn = async (data: { invoiceItemId: string; quantity: number; date: string; notes?: string }) => {
+    const result = await ERPAPI.createReturn(data);
+    setProductReturns((current) => [result.return, ...current]);
+    setProducts((current) => current.map((product) =>
+      product.id === result.return.productId
+        ? { ...product, stockQuantity: result.productStockQuantity }
+        : product
+    ));
   };
 
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
@@ -361,40 +312,35 @@ export default function App() {
     setIsResetModalOpen(true);
   };
 
-  const handleClearAllData = () => {
-    ERPStorage.clearAllData();
-    setLots([]);
-    setWadding(ERPStorage.getWadding());
-    setRawMaterials([]);
-    setCuttingRecords([]);
-    setCutPiecesStock([]);
-    setProductionRecords([]);
-    setProducts([]);
-    setParties([]);
-    setPayments([]);
-    setInvoices([]);
-    setSuppliers([]);
-    setSupplierBills([]);
-    setSupplierPayments([]);
-    showToast('All system factory data cleared! (0 stock, fresh clean slate)', 'info');
-  };
-
-  const handleRestoreDefaults = () => {
-    ERPStorage.resetToDefault();
-    setLots(ERPStorage.getLots());
-    setWadding(ERPStorage.getWadding());
-    setRawMaterials(ERPStorage.getRawMaterials());
-    setCuttingRecords(ERPStorage.getCuttingRecords());
-    setCutPiecesStock(ERPStorage.getCutPiecesStock());
-    setProductionRecords(ERPStorage.getProductionRecords());
-    setProducts(ERPStorage.getProducts());
-    setParties(ERPStorage.getParties());
-    setPayments(ERPStorage.getPayments());
-    setInvoices(ERPStorage.getInvoices());
-    setSuppliers(ERPStorage.getSuppliers());
-    setSupplierBills(ERPStorage.getSupplierBills());
-    setSupplierPayments(ERPStorage.getSupplierPayments());
-    showToast('Sample demonstration factory dataset restored successfully!');
+  const handleClearAllData = async () => {
+    try {
+      await ERPAPI.clearAllData();
+      ERPStorage.clearAllData();
+      setLots([]);
+      setFabricLosses([]);
+      setWadding({
+        totalPurchasedKg: 0,
+        usedKg: 0,
+        availableKg: 0,
+        singleQuiltSpecKg: 0,
+        doubleQuiltSpecKg: 0,
+        items: [],
+      });
+      setRawMaterials([]);
+      setCuttingRecords([]);
+      setCutPiecesStock([]);
+      setProductionRecords([]);
+      setProducts([]);
+      setParties([]);
+      setPayments([]);
+      setInvoices([]);
+      setSuppliers([]);
+      setSupplierBills([]);
+      setSupplierPayments([]);
+      showToast('All system factory data cleared!', 'info');
+    } catch {
+      showToast('Could not clear system data from the server. Please try again.', 'info');
+    }
   };
 
   // Low stock counter
@@ -546,6 +492,15 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'returns' && (
+            <ProductReturnsView
+              invoices={invoices}
+              returns={productReturns}
+              currency={selectedCurrency}
+              onCreateReturn={handleCreateProductReturn}
+            />
+          )}
+
           {activeTab === 'reports' && (
             <ReportsView
               lots={lots}
@@ -572,12 +527,11 @@ export default function App() {
         </div>
       )}
 
-      {/* Reset System Modal with Clear All & Restore Sample Data Options */}
+      {/* Reset System Modal */}
       <ResetSystemModal
         isOpen={isResetModalOpen}
         onClose={() => setIsResetModalOpen(false)}
         onClearAll={handleClearAllData}
-        onRestoreDefaults={handleRestoreDefaults}
       />
     </div>
   );

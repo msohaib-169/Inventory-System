@@ -256,7 +256,6 @@ export interface ProductStockStatement extends StockStatement {}
 export interface FinishedProduct {
   id: string;
   name: string;
-  sku?: string;
   category: string;
   subCategory?: string; // e.g. "Bedsheet 3pcs", "Bedsheet 4pcs", "Bedsheet 5pcs"
   designNumber: string;
@@ -333,6 +332,20 @@ export interface Invoice {
   notes?: string;
   currencyCode?: string;
   currencySymbol?: string;
+}
+
+export interface ProductReturn {
+  id: string;
+  invoiceItemId: string;
+  invoiceId: string;
+  productId: string;
+  productName: string;
+  designNumber?: string;
+  invoiceNumber: string;
+  partyName: string;
+  quantity: number;
+  date: string;
+  notes?: string;
 }
 
 export type ReportPeriod = 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';

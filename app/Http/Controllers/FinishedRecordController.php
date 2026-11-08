@@ -14,7 +14,6 @@ class FinishedRecordController extends Controller
             return [
                 'id' => (string)$p->id,
                 'name' => $p->name ?? '',
-                'sku' => $p->sku ?? '',
                 'category' => $p->category ?? 'Bedsheet',
                 'subCategory' => $p->sub_category,
                 'designNumber' => $p->design_number ?? '',
@@ -42,7 +41,6 @@ class FinishedRecordController extends Controller
                 ['id' => $id],
                 [
                     'name' => $data['name'] ?? '',
-                    'sku' => $data['sku'] ?? '',
                     'category' => $data['category'] ?? 'Bedsheet',
                     'sub_category' => $data['subCategory'] ?? null,
                     'design_number' => $data['designNumber'] ?? '',
